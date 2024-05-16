@@ -1,0 +1,181 @@
+<app-navbar></app-navbar>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <app-sidebar></app-sidebar>
+        </div>
+
+        <div class="col-md-8 ml-4">
+            <main id="main" class="main">
+                <div class="pagetitle">
+                    <h1>Projects</h1>
+                    <nav>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a [routerLink]="['/']">Home</a></li>
+                            <li class="breadcrumb-item">Projects</li>
+                            <li class="breadcrumb-item active">Show All</li>
+
+                        </ol>
+                    </nav>
+                </div><!-- End Page Title -->
+
+                <!-- get list -->
+                <div class="text-end mb-5">
+                    <button class="btn btn-outline-primary" [routerLink]="['/projects/add']">Create new project</button>
+                </div>
+
+                <div class="card">
+                    <app-toast></app-toast>
+                    <div class="card-body">
+                        <h5 class="card-title">My projects</h5>
+
+                        <table mat-table [dataSource]="dataSource" matSort>
+
+                            <ng-container matColumnDef="Name">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by name">
+                                    Name
+                                </th>
+                                <td mat-cell *matCellDef="let element" class="fw-medium"> {{element.Name}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="Description">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by description">
+                                    Description
+                                </th>
+                                <td mat-cell *matCellDef="let element"
+                                    [ngClass]="{'fst-italic' : !element.Description}"> {{element.Description
+                                    ?element.Description:"No description"}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="TeamspaceID">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by teamspace">
+                                    Teamspace
+                                </th>
+                                <td mat-cell *matCellDef="let element"
+                                    [ngClass]="{'fst-italic' : !element.TeamspaceID}"> {{element.TeamspaceID
+                                    ?element.TeamspaceID:"No teamspace"}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="CreatedAt">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by creation date">
+                                    Created at
+                                </th>
+                                <td mat-cell *matCellDef="let element">{{
+                                    element.CreatedAt | date:"MMM dd, yyyy 'at'
+                                    hh:mm a" }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="actions">
+                                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                                <td mat-cell *matCellDef="let project">
+                                    <button mat-icon-button color="warn" class="btn btn-outline-danger"
+                                        (click)="deleteProject(project.ID)">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                    <button mat-icon-button color="warn" class="btn btn-outline-primary"
+                                        (click)="onProjectClick(project.ID)">
+                                        <mat-icon>view</mat-icon>
+                                    </button>
+
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                        </table>
+                        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
+                            aria-label="Select page of projects">
+                        </mat-paginator>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <app-toast></app-toast>
+                    <div class="card-body">
+                        <h5 class="card-title">Projects Of Joined teamspaces</h5>
+
+                        <table mat-table [dataSource]="dataSourceforJoined" matSort>
+
+                            <ng-container matColumnDef="Name">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by name">
+                                    Name
+                                </th>
+                                <td mat-cell *matCellDef="let element" class="fw-medium"> {{element.Name}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="Description">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by description">
+                                    Description
+                                </th>
+                                <td mat-cell *matCellDef="let element"
+                                    [ngClass]="{'fst-italic' : !element.Description}"> {{element.Description
+                                    ?element.Description:"No description"}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="TeamspaceID">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by teamspace">
+                                    Teamspace
+                                </th>
+                                <td mat-cell *matCellDef="let element"
+                                    [ngClass]="{'fst-italic' : !element.TeamspaceID}"> {{element.TeamspaceID
+                                    ?element.TeamspaceID:"No teamspace"}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="CreatedAt">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by creation date">
+                                    Created at
+                                </th>
+                                <td mat-cell *matCellDef="let element">{{ element.CreatedAt | date:"MMM dd, yyyy 'at'
+                                    hh:mm a" }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="CreatorID">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by owner">
+                                    Owner
+                                </th>
+                                <td mat-cell *matCellDef="let element" class="fw-medium"
+                                    (click)="onProjectClick(element.ID)"> {{element.CreatorID}} </td>
+                            </ng-container>
+
+
+                            <ng-container matColumnDef="actions">
+                                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                                <td mat-cell *matCellDef="let project">
+                                    <button mat-icon-button color="warn" class="btn btn-outline-danger">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                    <button mat-icon-button color="warn" class="btn btn-outline-primary"
+                                        (click)="onProjectClick(project.ID)">
+                                        <mat-icon>view</mat-icon>
+                                    </button>
+
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="displayedColumnsforJoined"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumnsforJoined;"></tr>
+                        </table>
+                        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
+                            aria-label="Select page of projects">
+                        </mat-paginator>
+                    </div>
+                </div>
+
+
+
+
+            </main>
+
+        </div>
+    </div>
+</div>

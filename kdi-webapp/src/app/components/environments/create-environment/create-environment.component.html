@@ -1,0 +1,92 @@
+<app-navbar></app-navbar>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <app-sidebar></app-sidebar>
+        </div>
+
+        <div class="col-md-8 ml-4">
+            <main id="main" class="main">
+                <div class="pagetitle">
+                    <h1>Environments</h1>
+                    <nav>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a [routerLink]="['/']">Home</a></li>
+                            <li class="breadcrumb-item active"><a [routerLink]="['']">Environments</a></li>
+                            <li class="breadcrumb-item active">Create</li>
+                        </ol>
+                    </nav>
+                </div><!-- End Page Title -->
+
+                <!-- get list -->
+                <div class="text-end mb-3">
+                    <button class="btn btn-outline-primary" [routerLink]="['']">Show Environments</button>
+                </div>
+                <app-toast></app-toast>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Create New Environment</h5>
+
+                        <form class="row g-3" [formGroup]="environmentForm" (ngSubmit)="onSubmit()">
+                            <div class="col-12">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control form-control-lg" id="name" formControlName="Name"
+                                    [ngClass]="{ 'is-invalid': submitted && formControls['Name'].errors }">
+                            </div>
+                            <div *ngIf="submitted && formControls['Name'].errors" class="invalid-feedback d-block">
+                                <div *ngIf="formControls['Name'].errors['required']">Please enter a name for your
+                                    environment</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <input type="text" class="form-control" id="description" formControlName="Description"
+                                    [ngClass]="{ 'is-invalid': submitted && formControls['Description'].errors }">
+                                <div *ngIf="submitted && formControls['Description'].errors"
+                                    class="invalid-feedback d-block">
+                                    <div *ngIf="formControls['Description'].errors['minlength']">The length of the
+                                        description
+                                        should be at least 6 characters</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="cluster_id" class="form-label">Choose a Cluster </label>
+                                <select id="cluster_id" class="form-select" formControlName="ClusterID"
+                                    [ngClass]="{ 'is-invalid': submitted && formControls['ClusterID'].errors }">
+                                    <option value="" selected disabled>Choose a Cluster...</option>
+                                    <option *ngFor="let cluster of clusters.clusters" [value]="cluster.ID">{{
+                                        cluster.Name }}</option>
+                                </select>
+                                <div *ngIf="submitted && formControls['ClusterID'].errors"
+                                    class="invalid-feedback d-block">
+                                    <div *ngIf="formControls['ClusterID'].errors['required']">Please choose a cluster
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="project_id" class="form-label">Choose a Project </label>
+                                <select id="project_id" class="form-select" formControlName="ProjectID"
+                                    [ngClass]="{ 'is-invalid': submitted && formControls['ProjectID'].errors }">
+                                    <option value="" selected disabled>Choose a Project...</option>
+                                    <option *ngFor="let project of projects.projects" [value]="project.ID">{{
+                                        project.Name }}</option>
+                                </select>
+                                <div *ngIf="submitted && formControls['ProjectID'].errors"
+                                    class="invalid-feedback d-block">
+                                    <div *ngIf="formControls['ProjectID'].errors['required']">Please choose a project
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-outline-primary">Create</button>
+                                <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </main>
+
+        </div>
+    </div>
+</div>

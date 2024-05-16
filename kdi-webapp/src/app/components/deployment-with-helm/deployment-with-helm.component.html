@@ -1,0 +1,89 @@
+<app-navbar></app-navbar>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <app-sidebar></app-sidebar>
+        </div>
+
+        <div class="col-md-8 ml-4">
+            <main id="main" class="main">
+                <div class="pagetitle">
+                    <h1>Deployments</h1>
+                    <nav>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a [routerLink]="['/']">Home</a></li>
+                            <li class="breadcrumb-item">Deployments</li>
+                            <li class="breadcrumb-item active">Deploy with helm charts</li>
+                        </ol>
+                    </nav>
+                </div><!-- End Page Title -->
+
+
+                <!-- invite someone -->
+                <div class="text-end mb-5">
+                    <button class="btn btn-primary">Deploy with yaml files</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Upload chart archive to deploy</h5>
+                        <form class="row g-3">
+                            <div class="col-12">
+                                <label for="file" class="form-label">Select Helm Chart:</label>
+                                <input type="file" class="form-control" id="file" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="release" class="form-label">Release Name:</label>
+                                <input type="text" class="form-control" id="release" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="namespace" class="form-label">Namespace:</label>
+                                <input type="text" class="form-control" id="namespace" required>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">Deploy</button>
+                            </div>
+                        </form><!-- Vertical Form -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Deploy from a Helm repository</h5>
+
+                        <form class="row g-3">
+                            <div class="col-12">
+                                <label for="release" class="form-label">Release Name:</label>
+                                <input type="text" class="form-control" id="release" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="url" class="form-label">Repository Url:</label>
+                                <input type="text" class="form-control" id="url" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="name" class="form-label">Repository Name:</label>
+                                <input type="text" class="form-control" id="name" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="namespace" class="form-label">Namespace:</label>
+                                <input type="text" class="form-control" id="namespace" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="set">Set Values:</label><br>
+                                <input type="text" id="args" name="set" placeholder="key1=value1,key2=value2"><br>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">Deploy</button>
+                            </div>
+                        </form><!-- Vertical Form -->
+
+                    </div>
+                </div>
+            </main>
+
+        </div>
+    </div>
+</div>

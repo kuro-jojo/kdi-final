@@ -1,0 +1,21 @@
+.social-items {
+  margin-top: 1rem;
+  text-decoration: none;
+  border: #ff6219 solid 1px;
+  margin: 1rem;
+  margin-bottom: 0;
+  padding: 0.5rem;
+  background-color: white;
+}
+.social-items span {
+  color: #101213;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+  margin: auto;
+}
+.social-items svg {
+  margin-left: 1rem;
+  width: 2.8rem;
+  height: 2.8rem;
+}

@@ -1,0 +1,113 @@
+/*@import "~bootstrap/dist/css/bootstrap.min.css";*/
+@import "~@fortawesome/fontawesome-free/css/all.min.css";
+
+body {
+  background-color: #faf9f8;
+}
+
+.card {
+  border-radius: 1rem;
+  background-color: #fff;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-img {
+  border-radius: 1rem 1rem 1rem 1rem;
+  max-width: 75%;
+  margin-top: 30%;
+}
+
+.appli {
+  text-align: center;
+  padding: 2rem;
+}
+
+.appli h5 {
+  color: #393f81;
+  margin-bottom: 1rem;
+  font-weight: 400;
+  font-size: 1.2rem;
+  text-align: left;
+}
+
+/* Style pour le bloc orange */
+.orange-block {
+  background-color: #ff6219;
+  padding: 2rem;
+  border-radius: 0 0 1rem 1rem;
+}
+
+/* Styles pour le texte du bloc orange */
+.orange-block h5 {
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.orange-block p {
+  color: #fff;
+}
+
+.card-body {
+  border-radius: 1rem 1rem 1rem 1rem;
+  border: 2px solid #ff6219;
+  height: 98%;
+  margin-right: 5px;
+}
+
+.form-title {
+  color: #ff6219;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  font-size: 700;
+}
+
+.form-label {
+  color: #393f81;
+}
+
+.btn-login {
+  background-color: #ff6219;
+  border-color: #ff6219;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+  background-color: #ff4500;
+  border-color: #ff4500;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+
+.text-muted:hover {
+  color: #495057;
+}
+h5 {
+  font-size: x-large;
+}
+.app-name {
+  margin-top: 80px;
+}
+label {
+}
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon input {
+  padding-left: 2.5rem; /* Ajustez la valeur selon la taille de l'icône */
+}
+
+.input-with-icon .icon {
+  position: absolute;
+  left: 10px; /* Ajustez la position de l'icône */
+  top: 50%;
+  transform: translateY(-50%);
+}
+.forgot-password {
+  color: #3a46c9;
+  text-decoration: underline;
+  margin-top: 1rem;
+}

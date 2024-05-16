@@ -1,0 +1,124 @@
+<app-navbar></app-navbar>
+<div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3">
+        <app-sidebar></app-sidebar>
+        <app-toast></app-toast>
+    </div>
+
+    <div class="col-md-8 ml-4">
+        <main id="main" class="main">
+            <div class="pagetitle">
+                <h1>Clusters</h1>
+                <nav>
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a [routerLink]="['/']">Home</a></li>
+                        <li class="breadcrumb-item"><a [routerLink]="['/clusters']">Clusters</a></li>
+                        <li class="breadcrumb-item"><a [routerLink]="['/clusters/add']">Add</a></li>
+                        <li class="breadcrumb-item active">Local</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <h2 *ngIf="!isEditMode" class="mb-4 text-center">Add a new kubernetes cluster</h2>
+            <h2 *ngIf="isEditMode" class="mb-4 text-center">Edit your cluster</h2>
+
+            <div class="card col-6 mx-auto p-3">
+                <div class="card-body p-3">
+                    <form class="row g-3 " [formGroup]="clusterForm" (ngSubmit)="onSubmit()">
+                        <div class="col-12">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" formControlName="Name"
+                                [ngClass]="{ 'is-invalid': submitted && formControls['Name'].errors }">
+                            <div *ngIf="submitted && formControls['Name'].errors" class="invalid-feedback d-block">
+                                <div *ngIf="formControls['Name'].errors['required']">Please enter a name</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="2"
+                                formControlName="Description"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label for="ipAddress" class="form-label">IP Address</label>
+                            <input type="text" class="form-control" id="ipAddress" placeholder="192.1.1.2"
+                                [ngClass]="{ 'is-invalid': submitted && formControls['IpAddress'].errors }"
+                                formControlName="IpAddress">
+                            <div *ngIf="submitted && formControls['IpAddress'].errors" class="invalid-feedback d-block">
+                                <div *ngIf="formControls['IpAddress'].errors['required']">Please enter an IP address
+                                </div>
+                                <div *ngIf="formControls['IpAddress'].errors['pattern']">Please a valid IP address
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="port" class="form-label">Port</label>
+                            <input type="text" class="form-control" id="port" formControlName="Port" placeholder="6443"
+                                [ngClass]="{ 'is-invalid': submitted && formControls['Port'].errors }">
+                            <div *ngIf="submitted && formControls['Port'].errors" class="invalid-feedback d-block">
+                                <div *ngIf="formControls['Port'].errors['pattern']">Please a valid port</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="token" class="form-label">Token</label>
+                            <textarea class="form-control" id="token" rows="4" formControlName="Token"
+                                [ngClass]="{ 'is-invalid': submitted && formControls['Token'].errors }"></textarea>
+                            <div *ngIf="submitted && formControls['Token'].errors" class="invalid-feedback d-block">
+                                <div *ngIf="formControls['Token'].errors['required']">Please enter a token</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="teamspace" class="form-label text-muted">Do you to make this cluster
+                                available for your teampsaces ?</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="teamspace-no-perso" value="no"
+                                    formControlName="forTeamspace" (change)="onTeamspaceChange()">
+                                <label class="form-check-label" for="teamspace-no-perso">No. Only me could access
+                                    it!</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="teamspace-yes-all" value="all"
+                                    formControlName="forTeamspace" (change)="onTeamspaceChange()">
+                                <label class="form-check-label" for="teamspace-yes-all">Yes. All my teamspace could
+                                    access it!</label>
+                            </div>
+                            <div class="form-check form-check-inline" *ngIf="teamspaces">
+                                <input class="form-check-input" type="radio" id="teamspace-yes-some" value="yes"
+                                    formControlName="forTeamspace" (change)="onTeamspaceChange()"> <label
+                                    class="form-check-label" for="teamspace-yes-some">Yes. Only some of my teamspace
+                                    could access it!</label>
+                            </div>
+
+                        </div>
+                        <div class="col-12 mx-auto" *ngIf="clusterForm.controls['forTeamspace'].value == 'yes'">
+                            <p-multiSelect [options]="teamspaces" formControlName="selectedTeamspaces" filter="true"
+                                [virtualScroll]="true" optionLabel="Name" [style]="{'width':'100%'}" variant="filled"
+                                [virtualScrollItemSize]="43" placeholder="Select Teamspaces" />
+                            <div *ngIf="submitted && formControls['selectedTeamspaces'].errors"
+                                class="invalid-feedback d-block">
+                                <div *ngIf="formControls['selectedTeamspaces'].errors['required']">Please select one
+                                    or multiple teampsaces</div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button *ngIf="!isEditMode" type="submit" class="btn btn-outline-success"><span
+                                    *ngIf="addLoading"
+                                    class="spinner-border spinner-border-sm mr-1"></span>Create</button>
+                            <button *ngIf="isEditMode" type="submit" class="btn btn-success"
+                                style="margin-right: 1rem;"><span *ngIf="editLoading"
+                                    class="spinner-border spinner-border-sm mr-1"></span>Save</button>
+                            <button *ngIf="isEditMode" type="button" class="btn btn-danger" style="margin-right: 1rem;"
+                                (click)="revokeCluster()"><span *ngIf="revokeLoading"
+                                    class="spinner-border spinner-border-sm mr-1"></span>Revoke</button>
+                            <button *ngIf="!isEditMode" type="reset" class="btn btn-secondary">Reset</button>
+                            <button *ngIf="isEditMode" type="button" class="btn btn-outline-secondary"
+                                (click)="cancel()">Cancel</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </main>
+
+    </div>
+</div>

@@ -1,0 +1,116 @@
+<!-- ======= Sidebar ======= -->
+<aside id="sidebar" class="sidebar">
+
+    <ul class="sidebar-nav" id="sidebar-nav">
+
+        <li class="nav-item">
+            <a class="nav-link " [routerLink]="['']">
+                <i class="bi bi-grid"></i>
+                <span>Dashboard</span>
+            </a>
+        </li><!-- End Dashboard Nav -->
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-cloud-download"></i><span>Clusters</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                <li>
+                    <a [routerLink]="['/clusters/add']">
+                        <i class="bi bi-circle"></i><span>Add a new cluster</span>
+                    </a>
+                </li>
+                <li>
+                    <a [routerLink]="['/clusters']">
+                        <i class="bi bi-circle"></i><span>Show All</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Cluster Nav -->
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-lightbulb"></i><span>Projects</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                <li>
+                    <a [routerLink]="['/projects/add']">
+                        <i class="bi bi-circle"></i><span>Create a new project</span>
+                    </a>
+                </li>
+                <li>
+                    <a [routerLink]="['/environments/add']">
+                        <i class="bi bi-circle"></i><span>Environments</span>
+                    </a>
+                </li>
+                <li>
+                    <a [routerLink]="['/projects']">
+                        <i class="bi bi-circle"></i><span>Show All</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Project Nav -->
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-people"></i><span>Teamspaces</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                <li>
+                    <a [routerLink]="['/teamspaces/add']">
+                        <i class="bi bi-circle"></i><span>Add new teamspace</span>
+                    </a>
+                </li>
+                <li>
+                    <a [routerLink]="['/teamspaces']">
+                        <i class="bi bi-circle"></i><span>Show All</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Teamspace Nav -->
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-gear"></i><span>Deployments</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="charts-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="#">
+                        <i class="bi bi-circle"></i><span>Deploy with yaml files</span>
+                    </a>
+                </li>
+                <li>
+                    <a [routerLink]="['/deployments/helm']">
+                        <i class="bi bi-circle"></i><span>Deploy with helm charts</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="bi bi-circle"></i><span>Generate deployment files</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Deployments Nav -->
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#icons-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-arrow-clockwise"></i><span>Updates</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="#">
+                        <i class="bi bi-circle"></i><span>Update deployment file</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="bi bi-circle"></i><span>Update deployment strategy</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Icons Nav -->
+
+    </ul>
+
+
+</aside><!-- End Sidebar-->

@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kdi-web.fullname" . }}
+  labels:
+    {{- include "kdi-web.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kdi-web.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "kdi-web.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "kdi-web.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+
+          env:
+            - name: KDI_WEB_API_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_WEB_API_PORT
+            - name: KDI_WEBAPP_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_WEBAPP_ENDPOINT
+            - name: KDI_MSAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_MSAL_CLIENT_ID
+            - name: KDI_MSAL_OIDC_METADATA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_MSAL_OIDC_METADATA_URL
+            - name: KDI_MSAL_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_MSAL_TENANT_ID
+            - name: KDI_JWT_SUB_FOR_K8S_API
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_JWT_SUB_FOR_K8S_API
+            - name: KDI_JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_JWT_SECRET_KEY
+            - name: KDI_JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_JWT_ISSUER
+            - name: KDI_MONGO_DB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_MONGO_DB_URI               
+            - name: KDI_MONGO_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kdi-web.fullname" . }}
+                  key: KDI_MONGO_DB_NAME  
+            

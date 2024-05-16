@@ -1,0 +1,66 @@
+<app-navbar></app-navbar>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <app-sidebar></app-sidebar>
+        </div>
+
+        <div class="col-md-8 ml-4">
+            <main id="main" class="main">
+                <div class="pagetitle">
+                    <h1>Teamspaces</h1>
+                    <nav>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a [routerLink]="['/']">Home</a></li>
+                            <li class="breadcrumb-item active">Teamspaces</li>
+                        </ol>
+                    </nav>
+                </div><!-- End Page Title -->
+
+                <!-- get list -->
+                <div class="text-end mb-3">
+                    <button class="btn btn-outline-primary" [routerLink]="['/teamspaces']">Show Teamspaces</button>
+                </div>
+
+                <div class="card">
+                    <app-toast></app-toast>
+                    <app-toast></app-toast>
+                    <div class="card-body">
+                        <h5 class="card-title">Create New Teamspace</h5>
+
+                        <form class="row g-3" [formGroup]="teamspaceForm" (ngSubmit)="onSubmit()">
+                            <div class="col-12">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" formControlName="name"
+                                    [ngClass]="{ 'is-invalid': submitted && formControls['name'].errors }">
+                                <div *ngIf="submitted && formControls['name'].errors" class="invalid-feedback d-block">
+                                    <div *ngIf="formControls['name'].errors['required']">Please enter a name for your
+                                        project</div>
+                                </div>
+
+                            </div>
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <input type="text" class="form-control" id="description" formControlName="description"
+                                    [ngClass]="{ 'is-invalid': submitted && formControls['description'].errors }">
+                                <div *ngIf="submitted && formControls['description'].errors"
+                                    class="invalid-feedback d-block">
+                                    <div *ngIf="formControls['description'].errors['minlength']">The length of the
+                                        description
+                                        should be at least 6 characters</div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-outline-primary">Create</button>
+                                <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </main>
+
+        </div>
+    </div>
+</div>

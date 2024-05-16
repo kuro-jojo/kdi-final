@@ -1,0 +1,5 @@
+*.env.local
+*gin-bin
+*token*
+*vscode*
+*secret.yaml

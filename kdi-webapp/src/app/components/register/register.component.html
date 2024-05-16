@@ -1,0 +1,89 @@
+<app-toast></app-toast>
+<section class="vh-100">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-10">
+
+
+            <div class="col col-xl-6 ">
+                <div class="card">
+                    <div class="d-flex align-items-center">
+                        <div class="card-body p-4 text-black">
+                            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+                                <div class="d-flex align-items-center mb-3 pb-1">
+                                    <i class="fas fa-cubes fa-2x me-3" style="color: #ff6219;"></i>
+                                    <span class="h1 fw-bold mb-0">KDI</span>
+                                </div>
+                                <p class="fw-normal mb-3 pb-3 form-title">Create a new account</p>
+
+                                <div class="form-outline mb-4">
+                                    <label class="form-label" for="name">Name *</label>
+                                    <div class="input-with-icon">
+                                        <input type="text" formControlName="name" id="name"
+                                            class="form-control form-control-lg" placeholder="Jean Dupont" required
+                                            [ngClass]="{ 'is-invalid': submitted && formControls['name'].errors }" />
+                                        <i class="fa-sharp fa-solid fa-user icon"></i>
+                                    </div>
+                                    <div *ngIf="submitted && formControls['name'].errors"
+                                        class="invalid-feedback d-block">
+                                        <div *ngIf="formControls['name'].errors['required']">Please enter a name</div>
+                                    </div>
+                                </div>
+
+                                <div class="form-outline mb-4">
+                                    <label class="form-label" for="email">Email address *</label>
+                                    <div class="input-with-icon">
+                                        <input type="email" formControlName="email" id="email"
+                                            class="form-control form-control-lg" placeholder="example@gmail.com"
+                                            required
+                                            [ngClass]="{ 'is-invalid': submitted && formControls['email'].errors }" />
+                                        <i class="fa-sharp fa-solid fa-envelope icon"></i>
+                                    </div>
+                                    <div *ngIf="submitted && formControls['email'].errors"
+                                        class="invalid-feedback d-block">
+                                        <div *ngIf="formControls['email'].errors['required']">Please enter an email
+                                        </div>
+                                        <div *ngIf="formControls['email'].errors['email']">Please a valid email</div>
+                                    </div>
+                                </div>
+
+                                <div class="form-outline mb-4">
+                                    <label class="form-label" for="password">Password *</label>
+                                    <div class="input-with-icon">
+                                        <input type="password" formControlName="password" id="password"
+                                            class="form-control form-control-lg" placeholder="****" required />
+                                        <i class="fa-solid fa-lock icon"></i>
+                                    </div>
+                                    <div *ngIf="submitted && formControls['password'].errors"
+                                        class="invalid-feedback d-block">
+                                        <div *ngIf="formControls['password'].errors['required']">Password is required
+                                        </div>
+                                        <div *ngIf="formControls['password'].errors['minlength']">Password must be at
+                                            least 6
+                                            characters</div>
+                                    </div>
+                                    <a class="small mx-auto forgot-password d-block mt-3" href="#">Forgot
+                                        password?</a> <br>
+                                </div>
+                                <div class="pt-1 d-flex flex-column">
+                                    <button class="btn btn-lg btn-block btn-login col-lg-10 mx-auto" type="submit">
+                                        <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+                                        Register</button>
+
+                                    <p class="mt-4 pb-lg-2 text-small">Already have an account? <a
+                                            [routerLink]="['/login']">Sign in
+                                            here</a></p>
+                                </div>
+                                <div class="mx-auto col-lg-11 d-flex flex-column">
+
+                                    <span class="text-center mb-2"
+                                        style="font-family: cursive; font-size: large;">or</span>
+                                    <app-sign-in-microsoft></app-sign-in-microsoft>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

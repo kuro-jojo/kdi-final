@@ -1,0 +1,6 @@
+go 1.22.0
+
+use (
+	./kdi-k8s
+	./kdi-web
+)
