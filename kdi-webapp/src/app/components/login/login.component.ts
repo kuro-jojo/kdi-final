@@ -6,6 +6,7 @@ import { first } from 'rxjs';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { MsalService } from '@azure/msal-angular';
 import { HttpErrorResponse } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 
 @Component({
     selector: 'app-login',
@@ -31,6 +32,7 @@ export class LoginComponent {
 
     ngOnInit() {
         // redirect to home if already logged in
+        console.log("Envs : ", environment.apiUrl, environment.redirectUri)
         if (this.msalAuthService.instance.getAllAccounts().length > 0 || this.userService.isAuthentificated) {
             this.router.navigateByUrl('')
         }
