@@ -19,7 +19,6 @@ const setEnv = () => {
     scopes: '${process.env["KDI_WEBAPP_MSAL_SCOPE"]}'?.split(', '),
     };
     `;
-    console.log("envs :", process.env["KDI_WEBAPP_WEP_API_ENDPOINT"], process.env["KDI_WEBAPP_REDIRECT_URI"]);
     console.log(colors.magenta('The file `environment.ts` will be written with the following content: \n'));
     writeFile(targetPath, envConfigFile, (err: any) => {
         if (err) {
