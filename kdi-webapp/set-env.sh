@@ -7,6 +7,11 @@ export KDI_WEBAPP_MSAL_AUTHORITY=$(cat /tmp/kdi_web_msal_authority.txt)
 export KDI_WEBAPP_MSAL_REDIRECT_URI=$(cat /tmp/kdi_web_msal_redirect_uri.txt)
 export KDI_WEBAPP_MSAL_SCOPE=$(cat /tmp/kdi_web_msal_scope.txt)
 
+cat /tmp/kdi_web_api_endpoint.txt
+cat /tmp/kdi_web_msal_client_id.txt
+cat /tmp/kdi_web_msal_authority.txt
+cat /tmp/kdi_web_msal_redirect_uri.txt
+cat /tmp/kdi_web_msal_scope.txt
 # Remove the file
 rm /tmp/kdi_*.txt
 
