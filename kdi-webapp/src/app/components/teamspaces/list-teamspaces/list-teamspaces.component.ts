@@ -1,6 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
 import { Teamspace } from 'src/app/_interfaces/teamspace';
-import { Router } from '@angular/router';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
@@ -31,14 +30,9 @@ export class ListTeamspacesComponent {
     user!: { 'user': Teamspace };
 
     constructor(
-        private router: Router,
         private teamspaceService: TeamspaceService,
         private userService: UserService,
         private serverService: ServerService,) {
-    }
-
-    onTeamClick(id: string) {
-        this.router.navigate(['teamspaces' + id]);
     }
 
     ngOnInit() {
@@ -57,9 +51,6 @@ export class ListTeamspacesComponent {
                             this.toastComponent.toastType = 'info';
                             this.triggerToast();
                             console.log(error);
-                        },
-                        complete: () => {
-                            console.log("Teamspaces loaded successfully");
                         }
                     });
 
@@ -78,9 +69,6 @@ export class ListTeamspacesComponent {
                                         },
                                         error: (error: HttpErrorResponse) => {
                                             console.error(error.error.message);
-                                        },
-                                        complete: () => {
-                                            console.log("user loaded successfully");
                                         }
                                     }
 
@@ -91,9 +79,6 @@ export class ListTeamspacesComponent {
                             this.toastComponent.message = "Failed to fetch teamspaces. Please try again later.";
                             this.toastComponent.toastType = 'info';
                             this.triggerToast();
-                        },
-                        complete: () => {
-                            console.log("Teamspaces loaded successfully");
                         }
                     });
             },

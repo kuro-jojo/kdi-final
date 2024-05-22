@@ -27,7 +27,9 @@ export class RegisterComponent {
     ) {
         // redirect to home if already logged in
         if (this.msalAuthService.instance.getAllAccounts().length > 0 || this.userService.isAuthentificated) {
-            this.router.navigateByUrl('')
+            // get return url from route parameters or default to '/'
+            const { redirect } = window.history.state;
+            this.router.navigateByUrl(redirect || '');
         }
         this.registerForm = new FormGroup({});
     }
@@ -63,9 +65,9 @@ export class RegisterComponent {
                     this.toastComponent.toastType = 'success';
                     this.triggerToast();
 
-                    console.log("user registered : " + resp);
-                    console.log("user registered : " + resp);
-                    this.router.navigate([''])
+                    // get return url from route parameters or default to '/'
+                    const { redirect } = window.history.state;
+                    this.router.navigateByUrl(redirect || '');
                     this.loading = false;
                 },
                 error: (error: HttpErrorResponse) => {
@@ -76,12 +78,7 @@ export class RegisterComponent {
                     this.toastComponent.toastType = 'danger';
                     this.triggerToast();
 
-                    console.error("Register user error :" + error.error.message);
-                    console.error("Register user error :" + error.error.message);
                     this.loading = false;
-                },
-                complete: () => {
-                    console.log("Register user completed");
                 }
             })
     }

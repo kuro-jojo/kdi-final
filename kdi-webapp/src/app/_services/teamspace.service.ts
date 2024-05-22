@@ -45,14 +45,11 @@ export class TeamspaceService {
         return this.http.delete<any>(this.apiUrl + '/' + teamId + '/members/' + memberId)
     }
 
-    getTeamspaceProjects(team_id: string): Observable<any> {
-        return this.http.get<any>(this.apiUrl + '/projects/' + team_id)
+    getTeamspaceProjects(teamId: string): Observable<any> {
+        return this.http.get<any>(this.apiUrl + '/' + teamId + '/projects')
     }
 
-    getTeamspaceById(id: string | undefined) {
+    getTeamspaceById(id: string): Observable<any> {
         return this.http.get<any>(this.apiUrl + '/' + id)
     }
 }
-
-
-

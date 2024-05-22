@@ -6,7 +6,6 @@ import { first } from 'rxjs';
 import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { MsalService } from '@azure/msal-angular';
 import { HttpErrorResponse } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
 
 @Component({
     selector: 'app-login',
@@ -33,7 +32,9 @@ export class LoginComponent {
     ngOnInit() {
         // redirect to home if already logged in
         if (this.msalAuthService.instance.getAllAccounts().length > 0 || this.userService.isAuthentificated) {
-            this.router.navigateByUrl('')
+            // get return url from route parameters or default to '/'
+            const { redirect } = window.history.state;
+            this.router.navigateByUrl(redirect || '');
         }
 
         this.loginForm = this.formBuilder.group({
@@ -65,7 +66,9 @@ export class LoginComponent {
                     this.toastComponent.message = "You have successfully logged in!";
                     this.toastComponent.toastType = 'success';
                     this.triggerToast();
-                    this.router.navigateByUrl('')
+                    // get return url from route parameters or default to '/'
+                    const { redirect } = window.history.state;
+                    this.router.navigateByUrl(redirect || '');
                 },
                 error: (error: HttpErrorResponse) => {
                     this.toastComponent.message = "Invalid email or password";
@@ -85,4 +88,3 @@ export class LoginComponent {
             })
     }
 }
-

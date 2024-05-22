@@ -184,7 +184,7 @@ func deployChart(chartContent []byte, releaseName string) error {
 
 	// Create a Helm action configuration
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(settings.RESTClientGetter(), settings.Namespace(), os.Getenv("HELM_DRIVER"), log.Printf); err != nil {
+	if err := actionConfig.Init(settings.RESTClientGetter(), settings.Namespace(), os.Getenv("KDI_HELM_DRIVER"), log.Printf); err != nil {
 		return err
 	}
 

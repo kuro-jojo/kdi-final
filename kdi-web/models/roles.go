@@ -28,6 +28,10 @@ const (
 	UpdateClusterRole = "UPDATE_CLUSTER"
 	ViewClusterRole   = "VIEW_CLUSTER"
 	ListClustersRole  = "LIST_CLUSTERS"
+
+	// Deployment roles
+	CreateDeploymentRole = "CREATE_DEPLOYMENT"
+	DeleteDeploymentRole = "DELETE_DEPLOYMENT"
 )
 
 func GetRoles() []string {
@@ -52,6 +56,9 @@ func GetRoles() []string {
 		UpdateClusterRole,
 		ViewClusterRole,
 		ListClustersRole,
+
+		CreateDeploymentRole,
+		DeleteDeploymentRole,
 	}
 }
 

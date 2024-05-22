@@ -6,19 +6,21 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kuro-jojo/kdi-k8s/models"
-	"github.com/kuro-jojo/kdi-k8s/utils"
-
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kuro-jojo/kdi-k8s/models"
+	"github.com/kuro-jojo/kdi-k8s/utils"
 )
 
+// HandleKubeObjectCreation handles the creation of a kubernetes object
 func HandleKubeObjectCreation(obj models.KubeObject, c *gin.Context) (int, string) {
-	log.Printf("\t\tCreating %T: %s\n", obj, obj.GetName())
+	log.Printf("Creating %T: %s\n", obj, obj.GetName())
 
 	if obj.GetNamespace() == "" {
-		return http.StatusBadRequest, "Namespace is required for creation"
+		log.Printf("Namespace not provided for object %s. Setting it to \"default\"\n", obj.GetName())
+		obj.SetNamespace("default")
 	}
 
 	err := obj.Get(context.TODO(), obj.GetName(), metav1.GetOptions{})
@@ -31,20 +33,38 @@ func HandleKubeObjectCreation(obj models.KubeObject, c *gin.Context) (int, strin
 			return http.StatusForbidden, fmt.Sprintf("Cannot access %s in the namespace %s", obj.GetName(), obj.GetNamespace())
 		} else if !utils.IsNotFoundError(err.Error()) {
 			log.Printf("Error on getting object: %v.\n", err)
+			// TODO : handle other errors
 			return http.StatusInternalServerError, "An unexpected error occurred"
 		}
 	} else {
 		log.Printf("Object already exists: %s\n", obj.GetName())
 		return http.StatusConflict, fmt.Sprintf("%s already exists in namespace %s", obj.GetName(), obj.GetNamespace())
 	}
-	log.Printf("Creating object: %s\n", obj.GetName())
-	newObj, err := obj.Create(context.TODO(), obj, metav1.CreateOptions{})
-	if err != nil {
-		log.Printf("Error on creating object %s in namespace %s: %v\n", obj.GetName(), obj.GetNamespace(), err)
-		e := fmt.Sprintf("Error on creating object: %s\n", obj.GetName())
-		return http.StatusInternalServerError, e
-	}
 
-	log.Printf("Object created: %s\n", newObj.GetName())
-	return http.StatusOK, fmt.Sprintf("%s created successfully.", newObj.GetName())
+	log.Printf("Creating object: %s in namespace %s\n", obj.GetName(), obj.GetNamespace())
+	for {
+		err := obj.Create(context.TODO(), obj, metav1.CreateOptions{})
+		if err != nil {
+			// Create namespace if it doesn't exist
+			if yes := utils.IsNotFoundError(err.Error()); yes {
+				ns := &corev1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: obj.GetNamespace(),
+					},
+				}
+				_, err := utils.GetClientSet(c).CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+				if err != nil {
+					log.Printf("Error on creating namespace %s: %v\n", obj.GetNamespace(), err)
+					return http.StatusInternalServerError, fmt.Sprintf("Error on creating namespace %s", obj.GetNamespace())
+				}
+				log.Printf("Namespace created: %s\n", obj.GetNamespace())
+				continue
+			}
+			log.Printf("Error on creating object %s in namespace %s: %v\n", obj.GetName(), obj.GetNamespace(), err)
+			e := fmt.Sprintf("Error on creating object %s in namespace %s\n", obj.GetName(), obj.GetNamespace())
+			return http.StatusInternalServerError, e
+		}
+		log.Printf("Object created: %s\n", obj.GetName())
+		return http.StatusCreated, fmt.Sprintf("%s created successfully in namespace %s", obj.GetName(), obj.GetNamespace())
+	}
 }

@@ -72,11 +72,7 @@ func CreateTeamspace(c *gin.Context) {
 }
 
 func GetTeamspacesByCreator(c *gin.Context) {
-	d, _ := c.Get("driver")
-	driver := d.(db.Driver)
-
-	u, _ := c.Get("user")
-	user := u.(models.User)
+	user, driver := GetUserFromContext(c)
 
 	teamspace := models.Teamspace{
 		CreatorID: user.ID.Hex(),
@@ -108,8 +104,8 @@ func GetTeamspace(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Error getting teamspace %v", err)
-		if er := utils.OnDuplicateKeyError(err, "Teamspace"); er != nil {
-			c.JSON(http.StatusConflict, gin.H{"message": er.Error()})
+		if utils.OnNotFoundError(err, "Teamspace") != nil {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Teamspace not found"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		}

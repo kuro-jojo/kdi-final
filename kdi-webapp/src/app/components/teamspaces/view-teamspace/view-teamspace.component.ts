@@ -114,14 +114,10 @@ export class ViewTeamspaceComponent {
                             {
                                 next: (resp) => {
                                     this.user = resp;
-                                    console.log("user", this.user);
                                     this.dataSource.data[i].CreatorID = this.user.user.Name;
                                 },
                                 error: (error: HttpErrorResponse) => {
                                     console.error("Error loading user: ", error.error.message);
-                                },
-                                complete: () => {
-                                    console.log("user loaded successfully");
                                 }
                             }
 
@@ -161,8 +157,6 @@ export class ViewTeamspaceComponent {
                         this.toastComponent.toastType = 'success';
                         this.triggerToast();
 
-                        console.log("project created : " + resp);
-
                         location.reload();
                     },
                     error: (error: HttpErrorResponse) => {
@@ -171,10 +165,6 @@ export class ViewTeamspaceComponent {
                         this.triggerToast();
 
                         console.error("Project creation error :" + error.error.message);
-                        console.log('le formulaire', this.projectForm.controls)
-                    },
-                    complete: () => {
-                        console.log("Project created successfully");
                     }
                 })
         } else {
@@ -321,4 +311,3 @@ export class ViewTeamspaceComponent {
 
 
 }
-

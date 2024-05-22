@@ -14,6 +14,9 @@ const (
 
 	// ErrSameValue is the error message for same value
 	ErrSameValue = "same value"
+
+	// ErrNoDocuments is the error message for no documents in result
+	ErrNoDocuments = "no documents in result"
 )
 
 func OnDuplicateKeyError(dbErr error, entity string) error {
@@ -22,6 +25,7 @@ func OnDuplicateKeyError(dbErr error, entity string) error {
 	}
 	return nil
 }
+
 func OnNotFoundError(dbErr error, entity string) error {
 	if strings.Contains(dbErr.Error(), ErrNotFound) {
 		return fmt.Errorf("%s not found", entity)
@@ -36,13 +40,9 @@ func OnSameValueError(dbErr error, entity string) error {
 	return nil
 }
 
-// func HandleCreationError(e error) error {
-// 	if e == nil {
-// 		return nil
-// 	}
-// 	err := OnDuplicateKey(e, "project")
-// 	// if err != nil {
-// 	// 	// other error
-// 	// }
-// 	return err
-// }
+func OnNoDocumentsError(dbErr error, entity string) error {
+	if strings.Contains(dbErr.Error(), ErrNoDocuments) {
+		return fmt.Errorf("no %s found", entity)
+	}
+	return nil
+}

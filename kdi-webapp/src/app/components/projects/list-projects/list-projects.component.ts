@@ -65,18 +65,20 @@ export class ListProjectsComponent {
                                 this.dataSource.paginator = this.paginator;
                                 this.dataSource.sort = this.sort;
                                 for (let i = 0; i <= this.dataSource.data.length - 1; i++) {
-                                    this.teamspaceService.getTeamspaceById(this.dataSource.data[i].TeamspaceID).subscribe(
-                                        {
-                                            next: (resp) => {
-                                                this.teamspace = resp;
-                                                this.dataSource.data[i].TeamspaceID = this.teamspace.teamspace.Name;
-                                            },
-                                            error: (error: HttpErrorResponse) => {
-                                                console.error("Error loading teamspace: ", error.error.message);
+                                    if (this.dataSource.data[i].TeamspaceID) {
+                                        this.teamspaceService.getTeamspaceById(this.dataSource.data[i].TeamspaceID).subscribe(
+                                            {
+                                                next: (resp) => {
+                                                    this.teamspace = resp;
+                                                    this.dataSource.data[i].TeamspaceID = this.teamspace.teamspace.Name;
+                                                },
+                                                error: (error: HttpErrorResponse) => {
+                                                    console.error("Error loading teamspace: ", error.error.message);
+                                                }
                                             }
-                                        }
 
-                                    )
+                                        )
+                                    }
                                 }
                             },
                             error: (error: HttpErrorResponse) => {
@@ -104,9 +106,6 @@ export class ListProjectsComponent {
                                             },
                                             error: (error: HttpErrorResponse) => {
                                                 console.error("Error loading teamspace: ", error.error.message);
-                                            },
-                                            complete: () => {
-                                                console.log("teamspace loaded successfully");
                                             }
                                         }
 
@@ -122,9 +121,6 @@ export class ListProjectsComponent {
                                             },
                                             error: (error: HttpErrorResponse) => {
                                                 console.error("Error loading user: ", error.error.message);
-                                            },
-                                            complete: () => {
-                                                console.log("user loaded successfully");
                                             }
                                         }
 
@@ -136,9 +132,6 @@ export class ListProjectsComponent {
                                 this.toastComponent.toastType = 'danger';
                                 this.triggerToast();
 
-                            },
-                            complete: () => {
-                                console.log("Project deleted successfully");
                             }
 
                         });
@@ -160,7 +153,6 @@ export class ListProjectsComponent {
     getProjectName(projectId: string) {
         this.projectService.getProjectDetails(projectId).subscribe((resp) => {
             this.project = resp;
-            console.log("name", this.project.Name);
             return this.project.Name;
 
         });

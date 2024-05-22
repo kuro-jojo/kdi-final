@@ -65,8 +65,9 @@ export class SignInMicrosoftComponent {
                                     this.userService.registerUserWithMsal()
                                         .subscribe({
                                             next: () => {
-                                                console.log("User logged successfully");
-                                                this.router.navigateByUrl('')
+                                                // get return url from route parameters or default to '/'
+                                                const { redirect } = window.history.state;
+                                                this.router.navigateByUrl(redirect || '');
                                             },
                                             error: (error) => {
                                                 console.error("Error while registering user: " + error.message)

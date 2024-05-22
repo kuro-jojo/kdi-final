@@ -6,6 +6,7 @@ import (
 
 	"github.com/kuro-jojo/kdi-web/db"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -15,11 +16,11 @@ const (
 )
 
 type Environment struct {
-	ID          string `bson:"id"`
-	Name        string `bson:"name"`
-	Description string `bson:"description"`
-	ProjectID   string `bson:"project_id"`
-	ClusterID   string `bson:"cluster_id"`
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
+	Name        string             `bson:"name"`
+	Description string             `bson:"description"`
+	ProjectID   string             `bson:"project_id"`
+	ClusterID   string             `bson:"cluster_id"`
 }
 
 func (e *Environment) Create(driver db.Driver) error {

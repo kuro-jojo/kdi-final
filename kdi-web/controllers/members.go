@@ -197,8 +197,12 @@ func GetMembersByTeamspace(c *gin.Context) {
 
 	err = teamspace.Get(driver)
 	if err != nil {
-		log.Printf("Error getting teamspace: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Teamspace not found"})
+		log.Printf("Error getting teamspace %v", err)
+		if utils.OnNotFoundError(err, "Teamspace") != nil {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Teamspace not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		}
 		return
 	}
 
@@ -242,8 +246,14 @@ func setupMember(c *gin.Context, roles []string, isDeletion bool, isUpdate bool)
 
 	err = teamspace.Get(driver)
 	if err != nil {
-		log.Printf("Error getting teamspace: %v", err)
-		return nil, models.Teamspace{}, models.Member{}, models.User{}, http.StatusBadRequest, "Teamspace not found"
+		log.Printf("Error getting teamspace %v", err)
+		if utils.OnNotFoundError(err, "Teamspace") != nil {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Teamspace not found"})
+			return nil, models.Teamspace{}, models.Member{}, models.User{}, http.StatusBadRequest, "Teamspace not found"
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return nil, models.Teamspace{}, models.Member{}, models.User{}, http.StatusInternalServerError, err.Error()
+		}
 	}
 	// Check if user has the right to add member to teamspace
 

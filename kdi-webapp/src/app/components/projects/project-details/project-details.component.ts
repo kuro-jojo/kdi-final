@@ -63,7 +63,6 @@ export class ProjectDetailsComponent {
     ngOnInit() {
         this.route.paramMap.subscribe(params => {
             const id = params.get('projectId');
-            console.log(id)
             if (id !== null) {
                 this.projectId = id;
                 this.loadProjectDetails();
@@ -78,26 +77,21 @@ export class ProjectDetailsComponent {
             .subscribe({
                 next: (resp) => {
                     this.project = resp;
-                    this.teamspaceService.getTeamspaceById(this.project.project.TeamspaceID).subscribe({
-                        next: (resp) => {
-                            this.teamspace = resp;
-                            this.project.project.TeamspaceID = this.teamspace.teamspace.Name;
-                        },
-                        error: (error: HttpErrorResponse) => {
-                            console.error("Error teamspace: ", error.error.message);
-                        },
-                        complete: () => {
-                            console.log("teamspace loaded successfully");
+                    if (this.project.project.TeamspaceID) {
+                        this.teamspaceService.getTeamspaceById(this.project.project.TeamspaceID).subscribe({
+                            next: (resp) => {
+                                this.teamspace = resp;
+                                this.project.project.TeamspaceID = this.teamspace.teamspace.Name;
+                            },
+                            error: (error: HttpErrorResponse) => {
+                                console.error("Error getting teamspace: ", error.error.message || error.error);
+                            }
                         }
+                        )
                     }
-
-                    )
                 },
                 error: (error: HttpErrorResponse) => {
                     console.error("Error loading project: ", error.error.message);
-                },
-                complete: () => {
-                    console.log("Project loaded successfully");
                 }
             });
     }
@@ -118,9 +112,6 @@ export class ProjectDetailsComponent {
                                 },
                                 error: (error: HttpErrorResponse) => {
                                     console.error("Error loading cluster: ", error.error.message);
-                                },
-                                complete: () => {
-                                    console.log("cluster loaded successfully");
                                 }
                             }
 
@@ -133,9 +124,6 @@ export class ProjectDetailsComponent {
                     this.toastComponent.toastType = 'info';
                     this.triggerToast();
                     console.log(error);
-                },
-                complete: () => {
-                    console.log("projects loaded successfully");
                 }
             });
 

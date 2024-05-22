@@ -62,7 +62,7 @@ export class ListClustersComponent {
         const today = new Date();
         const diff = expiry.getTime() - today.getTime();
         const days = diff / (1000 * 3600 * 24);
-        return days < 7;
+        return days < 3;
     }
 
     showClusterDetails(row: Cluster) {

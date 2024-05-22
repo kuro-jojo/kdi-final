@@ -15,6 +15,7 @@ import {
     MSAL_INSTANCE
 } from '@azure/msal-angular';
 
+import { FileUploadModule } from 'primeng/fileupload';
 
 import { AppRoutingModule } from './app-routing.module';
 import { MSALInstanceFactory } from './auth-config-ms';
@@ -45,6 +46,16 @@ import { ListProjectsComponent } from './components/projects/list-projects/list-
 import { DeploymentWithHelmComponent } from './components/deployment-with-helm/deployment-with-helm.component';
 import { CreateEnvironmentComponent } from './components/environments/create-environment/create-environment.component';
 
+import { AddMicroserviceYamlComponent } from './components/microservices/add-microservice-yaml/add-microservice-yaml.component';
+
+import { MessageModule } from 'primeng/message';
+import { MessagesModule } from 'primeng/messages';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { AvatarModule } from 'primeng/avatar';
+import { BadgeModule } from 'primeng/badge';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { RippleModule } from 'primeng/ripple';
 
 export function initializeMsal(msalService: MsalService): () => Promise<void> {
     return () => msalService.instance.initialize();
@@ -71,7 +82,8 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         ViewTeamspaceComponent,
         DeploymentWithHelmComponent,
         CreateEnvironmentComponent,
-        ProjectDetailsComponent
+        ProjectDetailsComponent,
+        AddMicroserviceYamlComponent
     ],
     imports: [
         ReactiveFormsModule,
@@ -88,6 +100,14 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         MatSelectModule,
         MultiSelectModule,
         FormsModule,
+        MessageModule,
+        MessagesModule,
+        FileUploadModule,
+        ToastModule,
+        AvatarModule,
+        BadgeModule,
+        ProgressSpinnerModule,
+        RippleModule
     ],
     schemas: [
         CUSTOM_ELEMENTS_SCHEMA
@@ -114,6 +134,7 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         },
         MsalService,
         MsalBroadcastService,
+        MessageService,
     ],
     bootstrap: [AppComponent,]
 })

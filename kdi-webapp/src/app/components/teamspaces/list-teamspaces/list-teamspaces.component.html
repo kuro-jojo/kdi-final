@@ -65,10 +65,10 @@
                                     <button mat-icon-button color="warn" class="btn btn-outline-danger">
                                         <mat-icon>delete</mat-icon>
                                     </button>
-                                    <button mat-icon-button color="warn" class="btn btn-outline-primary"
-                                        (click)="onTeamClick(project.ID)">
+                                    <a [routerLink]="['/teamspaces', project.ID]" mat-icon-button color="warn"
+                                        class="btn btn-outline-primary">
                                         <mat-icon>view</mat-icon>
-                                    </button>
+                                    </a>
 
                                 </td>
                             </ng-container>
@@ -96,8 +96,7 @@
                                     sortActionDescription="Sort by name">
                                     Name
                                 </th>
-                                <td mat-cell *matCellDef="let element" class="fw-medium"
-                                    (click)="onTeamClick(element.ID)"> {{element.Name}} </td>
+                                <td mat-cell *matCellDef="let element" class="fw-medium"> {{element.Name}} </td>
                             </ng-container>
 
                             <ng-container matColumnDef="Description">
@@ -135,10 +134,10 @@
                                     <button mat-icon-button color="warn" class="btn btn-outline-danger">
                                         <mat-icon>delete</mat-icon>
                                     </button>
-                                    <button mat-icon-button color="warn" class="btn btn-outline-primary"
-                                        (click)="onTeamClick(project.ID)">
+                                    <a [routerLink]="['/teamspaces', project.ID]" mat-icon-button color="warn"
+                                        class="btn btn-outline-primary">
                                         <mat-icon>view</mat-icon>
-                                    </button>
+                                    </a>
 
                                 </td>
                             </ng-container>

@@ -67,7 +67,7 @@ func AuthMiddleware(msalAuth MsalWebAuth) gin.HandlerFunc {
 
 // isBaseAuthTokenValid checks if the token is valid for the base authentication method
 func isBaseAuthTokenValid(tokenString string, c *gin.Context) (bool, int, string) {
-	token, code, message := retrieveTokenFromJWT(tokenString, os.Getenv("JWT_SECRET_KEY"))
+	token, code, message := retrieveTokenFromJWT(tokenString, os.Getenv("KDI_JWT_SECRET_KEY"))
 	if token == nil {
 		return false, code, message
 	}

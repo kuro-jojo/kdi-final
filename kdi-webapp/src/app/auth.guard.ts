@@ -9,7 +9,6 @@ export const AuthGuard: CanActivateFn = (_route, _state) => {
     const router = inject(Router);
     const msalAuthService = inject(MsalService);
     const scopes = environment.scopes;
-    
     if (!userService.isAuthentificated && msalAuthService.instance.getAllAccounts().length !== 0) {
         msalAuthService.acquireTokenSilent({
             account: msalAuthService.instance.getAllAccounts()[0],
@@ -22,14 +21,14 @@ export const AuthGuard: CanActivateFn = (_route, _state) => {
             error: (error) => {
                 console.error("Error while acquiring token: " + error);
                 // TODO: redirect to 500 page
-                router.navigateByUrl('/login');
+                router.navigateByUrl('/login', { state: { redirect: _state.url } });
                 throw new Error("Error while acquiring token in AuthGuard");
             }
         });
     }
 
     if (!userService.isAuthentificated || (userService.token && tokenExpired(userService.token))) {
-        router.navigateByUrl('/login');
+        router.navigateByUrl('/login', { state: { redirect: _state.url } });
         return false;
     }
     return true;

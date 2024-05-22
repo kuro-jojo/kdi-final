@@ -54,7 +54,7 @@ func GetProjectsByTeamspace(c *gin.Context) {
 	log.Println("Listing all projects in teamspace...")
 	user, driver := GetUserFromContext(c)
 
-	id := c.Param("team_id")
+	id := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
 
 	if err != nil {
@@ -214,7 +214,7 @@ func createProject(c *gin.Context) (int, string) {
 
 func GetProject(c *gin.Context) {
 	user, driver := GetUserFromContext(c)
-	id := c.Param("project_id")
+	id := c.Param("id")
 	objectID, _ := primitive.ObjectIDFromHex(id)
 	project := models.Project{
 		ID:        objectID,
@@ -225,8 +225,8 @@ func GetProject(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Error getting project %v", err)
-		if er := utils.OnDuplicateKeyError(err, "Project"); er != nil {
-			c.JSON(http.StatusConflict, gin.H{"message": er.Error()})
+		if utils.OnNotFoundError(err, "Project") != nil {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Project not found"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		}
@@ -238,7 +238,7 @@ func GetProject(c *gin.Context) {
 
 func DeleteProject(c *gin.Context) {
 	user, driver := GetUserFromContext(c)
-	id := c.Param("project_id")
+	id := c.Param("id")
 
 	projectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -309,7 +309,7 @@ func projectFormIsInValid(form ProjectForm) bool {
 }
 func UpdateProject(c *gin.Context) {
 	user, driver := GetUserFromContext(c)
-	id := c.Param("project_id")
+	id := c.Param("id")
 	// Vérification de la validité de l'ID du projet
 	projectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {

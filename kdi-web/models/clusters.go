@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/kuro-jojo/kdi-web/db"
@@ -39,11 +40,11 @@ func (c *Cluster) Add(driver db.Driver) error {
 func (c *Cluster) Update(driver db.Driver) error {
 
 	update := bson.D{{Key: "$set", Value: c}}
-
 	if len(c.Teamspaces) == 0 {
 		update = bson.D{{Key: "$set", Value: bson.D{{Key: "teamspaces", Value: []string{}}}}}
 	}
-
+	
+	log.Printf("Updating cluster %v", c.Name)
 	_, err := driver.GetCollection(ClustersColletion).UpdateByID(context.Background(), c.ID, update)
 	if err != nil {
 		return fmt.Errorf("%v", err)

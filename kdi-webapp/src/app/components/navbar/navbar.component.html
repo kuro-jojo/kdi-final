@@ -16,15 +16,12 @@
     </div>
     <nav class="header-nav ms-auto">
         <ul class="d-flex align-items-center">
+
             <li class="nav-item dropdown notifications" (click)="showNotifications($event)">
 
                 <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-                    <i class="bi bi-bell "></i><span
-                        class="position-absolute top-10 mt-1 start-100 translate-middle badge rounded-pill bg-danger"
-                        *ngIf="unreadNotifications > 0">
-                        {{ unreadNotifications }}
-                        <span class="visually-hidden">unread messages</span>
-                    </span>
+                    <i class="bi bi-bell text-3xl" pBadge [value]="unreadNotifications" severity="warning"></i>
+
                 </a>
 
                 <ul class="dropdown-menu">

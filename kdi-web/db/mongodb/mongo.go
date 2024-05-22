@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DB_NAME = os.Getenv("KDI_MONGO_DB_NAME")
+var DbName = os.Getenv("KDI_MONGO_DB_NAME")
 
 const (
 	UsersCollection         = "users"
@@ -22,7 +22,8 @@ const (
 	MicroservicesCollection = "microservices"
 	ContainersCollection    = "containers"
 	ProfilesCollection      = "profiles"
-	EnvironmentCollection   = "environments"
+	EnvironmentsCollection  = "environments"
+	NamespacesCollection    = "namespaces"
 )
 
 type MongoDriver struct {
@@ -32,7 +33,7 @@ type MongoDriver struct {
 // Connect to the database
 func (m *MongoDriver) Connect() error {
 	log.Println("Connecting to Mongodb...")
-	DB_NAME = os.Getenv("KDI_MONGO_DB_NAME")
+	DbName = os.Getenv("KDI_MONGO_DB_NAME")
 
 	// Capture connection properties.
 	uri := os.Getenv("KDI_MONGO_DB_URI")
@@ -62,12 +63,12 @@ func (m *MongoDriver) Connect() error {
 
 // GetDB returns the database connection
 func (m *MongoDriver) GetDB() *mongo.Database {
-	return m.Client.Database(DB_NAME)
+	return m.Client.Database(DbName)
 }
 
 // GetCollection returns a collection from the database
 func (m *MongoDriver) GetCollection(collectionName string) *mongo.Collection {
-	return m.Client.Database(DB_NAME).Collection(collectionName)
+	return m.Client.Database(DbName).Collection(collectionName)
 }
 
 func (m *MongoDriver) Disconnect() error {
@@ -126,11 +127,40 @@ func (m *MongoDriver) InitIndexes() error {
 		return fmt.Errorf("error creating indexes: %v", err)
 	}
 
-	// Create unique index for environment name
-	_, err = m.GetCollection(EnvironmentCollection).Indexes().CreateOne(context.TODO(), mongo.IndexModel{
+	// Create unique index for environment
+	_, err = m.GetCollection(EnvironmentsCollection).Indexes().CreateOne(context.TODO(), mongo.IndexModel{
 		Keys: bson.D{
 			{Key: "name", Value: 1},
 			{Key: "project_id", Value: 1},
+		},
+		Options: options.Index().SetUnique(true),
+	})
+
+	if err != nil {
+		log.Printf("Error creating indexes: %v", err)
+		return fmt.Errorf("error creating indexes: %v", err)
+	}
+
+	// Create unique index for namespace
+	_, err = m.GetCollection(NamespacesCollection).Indexes().CreateOne(context.TODO(), mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "name", Value: 1},
+			{Key: "cluster_id", Value: 1},
+		},
+		Options: options.Index().SetUnique(true),
+	})
+
+	if err != nil {
+		log.Printf("Error creating indexes: %v", err)
+		return fmt.Errorf("error creating indexes: %v", err)
+	}
+
+	// Create unique index for microservice : no duplicate name in an environment and namespace
+	_, err = m.GetCollection(MicroservicesCollection).Indexes().CreateOne(context.TODO(), mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "name", Value: 1},
+			{Key: "environment_id", Value: 1},
+			{Key: "namespace_id", Value: 1},
 		},
 		Options: options.Index().SetUnique(true),
 	})

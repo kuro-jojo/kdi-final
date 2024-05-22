@@ -144,7 +144,7 @@ func InstallChartFromRepo(name, repo, chart string, args map[string]string) {
 
 	settings := cli.New()
 	actionConfig := new(action.Configuration)
-	if err := actionConfig.Init(settings.RESTClientGetter(), settings.Namespace(), os.Getenv("KDI_HELM_DRIVER"), log.Printf); err != nil {
+	if err := actionConfig.Init(settings.RESTClientGetter(), settings.Namespace(), os.Getenv("KDI_KDI_HELM_DRIVER"), log.Printf); err != nil {
 		log.Fatal(err)
 	}
 	client := action.NewInstall(actionConfig)

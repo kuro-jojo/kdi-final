@@ -171,14 +171,19 @@ func GetEnvironments(c *gin.Context) {
 
 func GetEnvironment(c *gin.Context) {
 	_, driver := GetUserFromContext(c)
-	id := c.Param("e_id")
-	//objectID, _ := primitive.ObjectIDFromHex(id)
+
+	e_id := c.Param("e_id")
+	id, err := primitive.ObjectIDFromHex(e_id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid environment ID"})
+		return
+	}
 	env := models.Environment{
 		ID: id,
 		//CreatorID: user.ID.Hex(),
 	}
 
-	err := env.Get(driver)
+	err = env.Get(driver)
 
 	if err != nil {
 		log.Printf("Error getting environment %v", err)

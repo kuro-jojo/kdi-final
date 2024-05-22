@@ -18,3 +18,10 @@ func UpdateOne(driver db.Driver, collectionName string, filter primitive.D, upda
 	}
 	return nil
 }
+func Create(o interface{}, driver db.Driver, collectionName string) error {
+	_, err := driver.GetCollection(collectionName).InsertOne(context.Background(), o)
+	if err != nil {
+		return fmt.Errorf("%v", err)
+	}
+	return nil
+}

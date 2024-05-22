@@ -32,10 +32,10 @@ func AuthenticateToCluster(c *gin.Context) {
 
 	tokenString := getTokenFromHeader(c.Request.Header)
 	if tokenString == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		log.Println("No token provided for authentication to kubernetes api")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "No authentication token provided"})
 		return
 	}
-
 	token := retrieveTokenFromJWT(tokenString, c)
 	if token == nil {
 		return
@@ -43,10 +43,12 @@ func AuthenticateToCluster(c *gin.Context) {
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		if claims["sub"] != os.Getenv("KDI_JWT_SUB_FOR_K8S_API") {
+			log.Printf("Unauthorized - invalid sub %v", claims["sub"])
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
 		}
-		if claims["port"] == "" || claims["addr"] == "" || claims["token"] == "" {
+		if claims["addr"] == "" || claims["token"] == "" {
+			log.Println("Invalid credentials. Please provide ip, (and/or port) and token.")
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials. Please provide ip, (and/or port) and token."})
 			return
 		}
@@ -60,12 +62,11 @@ func AuthenticateToCluster(c *gin.Context) {
 
 		c.Set("token", claims["token"].(string))
 		authRequest.Token = claims["token"].(string)
-
 	} else {
+
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
-	log.Println("Authenticating to cluster by token...")
 
 	code, err := checkConnection(authRequest, c)
 
@@ -80,17 +81,20 @@ func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
 	log.Println("Checking connection to the cluster...")
 	var err error
 	var code int = http.StatusBadRequest
-	var errReach = fmt.Sprintf("cannot reach the kubernetes cluster at %s - please check the address and the port provided or the status of the server", authRequest.IpAddress)
+	var errReach = fmt.Sprintf("cannot reach the kubernetes cluster at %s:%s - please check the address and the port provided or the status of the server", authRequest.IpAddress, authRequest.Port)
 
 	config, err := authenticateToClusterWithToken(authRequest)
 	if err != nil {
+		log.Printf("error while authenticating to the cluster: %v", err)
 		return code, err
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
+		log.Printf("error while creating clientset: %v", err)
 		return code, err
 	}
+
 	finished := make(chan bool)
 	go func() {
 		finishedServer := make(chan bool)
@@ -105,7 +109,7 @@ func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
 			if err != nil {
 				if strings.Contains(err.Error(), "credentials") {
 					code = http.StatusUnauthorized
-					err = fmt.Errorf("please provide valid credentials")
+					err = fmt.Errorf("please provide valid credentials : %v", err)
 				} else if utils.IsNoRouteToHostError(err.Error()) {
 					code = http.StatusBadGateway
 					err = fmt.Errorf(errReach)
@@ -138,21 +142,22 @@ func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
 		log.Printf("error while connecting to the cluster: %v", err)
 		return code, fmt.Errorf("error while connecting to the cluster: %v", err)
 	}
-	log.Println("Connected to the cluster")
+
+	log.Printf("Connected to the cluster at %s", config.Host)
 
 	c.Set("clientset", clientset)
 	return http.StatusOK, nil
 }
 
 func authenticateToClusterWithToken(authRequest AuthRequest) (*rest.Config, error) {
-	if !strings.HasPrefix("https", authRequest.IpAddress) || !strings.HasPrefix("http", authRequest.IpAddress) {
-		authRequest.IpAddress = "https://" + authRequest.IpAddress
+	if !strings.HasPrefix("https", authRequest.IpAddress) {
+		authRequest.IpAddress = "https://" + strings.TrimPrefix(authRequest.IpAddress, "http")
 	}
 	// can be modified later according to how the data is stored
 	// namespaces := strings.Split(strings.TrimSpace(authRequest.Namespaces), ",")
 	addr := authRequest.IpAddress
 	if authRequest.Port != "" {
-		addr = fmt.Sprintf("%s:%s	", authRequest.IpAddress, authRequest.Port)
+		addr = fmt.Sprintf("%s:%s", authRequest.IpAddress, authRequest.Port)
 	}
 	log.Printf("Authenticating to cluster at %s", addr)
 	config, err := clientcmd.BuildConfigFromFlags(addr, "")
@@ -182,6 +187,7 @@ func retrieveTokenFromJWT(tokenString string, c *gin.Context) *jwt.Token {
 
 	if err != nil {
 		if strings.Contains(err.Error(), "token is expired") {
+			log.Println("Token is expired")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Token is expired"})
 			return nil
 		}

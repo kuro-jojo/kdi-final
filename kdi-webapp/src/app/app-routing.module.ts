@@ -21,6 +21,7 @@ import { ProjectDetailsComponent } from './components/projects/project-details/p
 import { ListProjectsComponent } from './components/projects/list-projects/list-projects.component';
 import { DeploymentWithHelmComponent } from './components/deployment-with-helm/deployment-with-helm.component';
 import { CreateEnvironmentComponent } from './components/environments/create-environment/create-environment.component';
+import { AddMicroserviceYamlComponent } from './components/microservices/add-microservice-yaml/add-microservice-yaml.component';
 
 
 const routes: Routes = [
@@ -28,22 +29,24 @@ const routes: Routes = [
     { path: "login", component: LoginComponent },
     { path: "register", component: RegisterComponent },
 
-    { path: "projects", component: ListProjectsComponent, canActivate: [AuthGuard], title: "List of projects" },
     { path: "projects/add", component: CreateProjectComponent, title: "Add new project", canActivate: [AuthGuard] },
     { path: "projects/:projectId", component: ProjectDetailsComponent, canActivate: [AuthGuard], title: "Project details" },
     { path: "projects/:id/environments/add", component: CreateEnvironmentComponent, title: "Add new environment", canActivate: [AuthGuard] },
+    { path: "projects", component: ListProjectsComponent, canActivate: [AuthGuard], title: "List of projects" },
+
+    { path: "environments/:id/deployments/with-yaml", component: AddMicroserviceYamlComponent, title: "Deploy with helm", canActivate: [AuthGuard]},
     { path: "environments/add", component: CreateEnvironmentComponent, title: "Add new environment", canActivate: [AuthGuard] },
 
-    { path: "clusters", component: ListClustersComponent, canActivate: [AuthGuard], title: "List of clusters" },
-    { path: "clusters/add", component: AddClusterComponent, canActivate: [AuthGuard], title: "Add new cluster" },
-    { path: "clusters/add/local", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Add new local cluster" },
     { path: "clusters/local/:id/edit", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Edit cluster" },
+    { path: "clusters/add/local", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Add new local cluster" },
+    { path: "clusters/add", component: AddClusterComponent, canActivate: [AuthGuard], title: "Add new cluster" },
+    { path: "clusters", component: ListClustersComponent, canActivate: [AuthGuard], title: "List of clusters" },
 
-    { path: "teamspaces", component: ListTeamspacesComponent, canActivate: [AuthGuard], title: "List of teamspaces" },
-    { path: "teamspaces/add", component: CreateTeamspaceComponent, canActivate: [AuthGuard], title: "Add new teamspace" },
     { path: "teamspaces/:teamId", component: ViewTeamspaceComponent, canActivate: [AuthGuard], title: "Team details" },
-    
-    { path: "deployments/helm", component: DeploymentWithHelmComponent, canActivate: [AuthGuard], title: "Deploy with helm" },    
+    { path: "teamspaces/add", component: CreateTeamspaceComponent, canActivate: [AuthGuard], title: "Add new teamspace" },
+    { path: "teamspaces", component: ListTeamspacesComponent, canActivate: [AuthGuard], title: "List of teamspaces" },
+
+    { path: "deployments/helm", component: DeploymentWithHelmComponent, canActivate: [AuthGuard], title: "Deploy with helm" },
 ];
 
 @NgModule({
