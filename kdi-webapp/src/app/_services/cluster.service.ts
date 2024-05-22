@@ -31,7 +31,11 @@ export class ClusterService {
         return this.http.get<any>(this.apiUrl + '/owned')
     }
 
-    getClusterById(id: string | undefined) {
+    getClusterById(id: string | undefined, forEdit: boolean = false): Observable<any> {
+        if (forEdit) {
+            // add query parameter to get all the details of the cluster
+            return this.http.get<any>(this.apiUrl + '/' + id + '?token=false')
+        }
         return this.http.get<any>(this.apiUrl + '/' + id)
     }
 }

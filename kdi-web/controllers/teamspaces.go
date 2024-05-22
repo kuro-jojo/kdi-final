@@ -91,6 +91,7 @@ func GetTeamspace(c *gin.Context) {
 	id := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
+		log.Printf("Error parsing teamspace ID %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid teamspace ID"})
 		return
 	}

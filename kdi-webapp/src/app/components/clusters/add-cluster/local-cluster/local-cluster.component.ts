@@ -61,7 +61,7 @@ export class AddLocalClusterComponent {
             forTeamspace: ['no', Validators.required]
         });
         if (this.isEditMode) {
-            this.clusterService.getClusterById(this.cluster.ID)
+            this.clusterService.getClusterById(this.cluster.ID, true)
                 .pipe(first())
                 .subscribe({
                     next: async (resp: any) => {

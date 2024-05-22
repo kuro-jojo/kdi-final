@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TokenEpirationDate = time.Hour * 24 * 1 // 1 days
+	TokenEpirationDate = time.Hour * 4 * 1 // 1 days
 )
 
 type UserForm struct {
@@ -182,7 +182,7 @@ func GetUserById(c *gin.Context) {
 		return
 	}
 	//c.JSON(http.StatusOK, gin.H{"message": message})
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	c.JSON(http.StatusOK, gin.H{"user": user.Name})
 }
 
 func GetAllJoinedTeamspaces(c *gin.Context) {

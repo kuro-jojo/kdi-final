@@ -24,8 +24,8 @@ import { ServerService } from 'src/app/_services/server.service';
 })
 export class ListProjectsComponent {
     @ViewChild(ToastComponent) toastComponent!: ToastComponent;
-    displayedColumns: string[] = ['Name', 'Description', 'CreatedAt', 'TeamspaceID', 'actions'];
-    displayedColumnsforJoined: string[] = ['Name', 'Description', 'CreatedAt', 'TeamspaceID', 'CreatorID', 'actions'];
+    displayedColumns: string[] = ['Name', 'Description', 'CreatedAt', 'Teamspace', 'actions'];
+    displayedColumnsforJoined: string[] = ['Name', 'Description', 'CreatedAt', 'Teamspace', 'CreatorID', 'actions'];
     dataSource: MatTableDataSource<Project> = new MatTableDataSource<Project>();
     dataSourceforJoined: MatTableDataSource<Project> = new MatTableDataSource<Project>();
     @ViewChild(MatPaginator)
@@ -33,8 +33,8 @@ export class ListProjectsComponent {
     @ViewChild(MatSort)
     sort!: MatSort;
 
-    teamspace!: { "teamspace": Teamspace };
-    teamspacejoined!: { "teamspace": Teamspace };
+    teamspaces: Record<string, Teamspace> = {};
+    teamspacejoined!: Teamspace
     user!: { "user": User };
     project!: Project;
     projectToDelete!: Project;
@@ -58,83 +58,9 @@ export class ListProjectsComponent {
         this.serverService.serverStatus()
             .subscribe({
                 next: () => {
-                    this.projectService.listProjects()
-                        .subscribe({
-                            next: (resp) => {
-                                this.dataSource.data = resp.projects as Project[];
-                                this.dataSource.paginator = this.paginator;
-                                this.dataSource.sort = this.sort;
-                                for (let i = 0; i <= this.dataSource.data.length - 1; i++) {
-                                    if (this.dataSource.data[i].TeamspaceID) {
-                                        this.teamspaceService.getTeamspaceById(this.dataSource.data[i].TeamspaceID).subscribe(
-                                            {
-                                                next: (resp) => {
-                                                    this.teamspace = resp;
-                                                    this.dataSource.data[i].TeamspaceID = this.teamspace.teamspace.Name;
-                                                },
-                                                error: (error: HttpErrorResponse) => {
-                                                    console.error("Error loading teamspace: ", error.error.message);
-                                                }
-                                            }
+                    this.getOwnedProjects();
 
-                                        )
-                                    }
-                                }
-                            },
-                            error: (error: HttpErrorResponse) => {
-                                this.toastComponent.message = "Failed to fetch projects. Please try again later.";
-                                this.toastComponent.toastType = 'info';
-                                this.triggerToast();
-                                //console.log(error);
-                            }
-                        });
-
-                    this.projectService.listProjectsOfJoinedTeamspaces()
-                        .pipe(first())
-                        .subscribe({
-                            next: (resp) => {
-                                this.dataSourceforJoined.data = resp.projects as Project[];
-                                this.dataSourceforJoined.paginator = this.paginator;
-                                this.dataSourceforJoined.sort = this.sort;
-
-                                for (let i = 0; i <= this.dataSourceforJoined.data.length - 1; i++) {
-                                    this.teamspaceService.getTeamspaceById(this.dataSourceforJoined.data[i].TeamspaceID).subscribe(
-                                        {
-                                            next: (resp) => {
-                                                this.teamspacejoined = resp;
-                                                this.dataSourceforJoined.data[i].TeamspaceID = this.teamspacejoined.teamspace.Name;
-                                            },
-                                            error: (error: HttpErrorResponse) => {
-                                                console.error("Error loading teamspace: ", error.error.message);
-                                            }
-                                        }
-
-                                    )
-                                }
-
-                                for (let i = 0; i <= this.dataSourceforJoined.data.length - 1; i++) {
-                                    this.userService.getUserById(this.dataSourceforJoined.data[i].CreatorID).subscribe(
-                                        {
-                                            next: (resp) => {
-                                                this.user = resp;
-                                                this.dataSourceforJoined.data[i].CreatorID = this.user.user.Name;
-                                            },
-                                            error: (error: HttpErrorResponse) => {
-                                                console.error("Error loading user: ", error.error.message);
-                                            }
-                                        }
-
-                                    )
-                                }
-                            },
-                            error: (error: HttpErrorResponse) => {
-                                this.toastComponent.message = error.error.message;
-                                this.toastComponent.toastType = 'danger';
-                                this.triggerToast();
-
-                            }
-
-                        });
+                    this.getJoinedProjects();
                 },
                 error: (error: HttpErrorResponse) => {
                     this.toastComponent.message = "Server is not available. Please try again later"
@@ -144,6 +70,84 @@ export class ListProjectsComponent {
                 }
             });
 
+    }
+
+    private getJoinedProjects() {
+        this.projectService.listProjectsOfJoinedTeamspaces()
+            .pipe(first())
+            .subscribe({
+                next: (resp) => {
+                    this.dataSourceforJoined.data = resp.projects as Project[];
+                    this.dataSourceforJoined.paginator = this.paginator;
+                    this.dataSourceforJoined.sort = this.sort;
+
+                    for (let i = 0; i <= this.dataSourceforJoined.data.length - 1; i++) {
+                        this.teamspaceService.getTeamspaceById(this.dataSourceforJoined.data[i].TeamspaceID).subscribe(
+                            {
+                                next: (resp) => {
+                                    this.teamspaces[this.dataSourceforJoined.data[i].ID] = resp.teamspace;
+                                },
+                                error: (error: HttpErrorResponse) => {
+                                    console.error("Error loading teamspace: ", error.error.message);
+                                }
+                            }
+
+                        );
+                    }
+
+                    for (let i = 0; i <= this.dataSourceforJoined.data.length - 1; i++) {
+                        this.userService.getUserById(this.dataSourceforJoined.data[i].CreatorID).subscribe(
+                            {
+                                next: (resp) => {
+                                    this.user = resp;
+                                    this.dataSourceforJoined.data[i].CreatorID = resp.user;
+                                },
+                                error: (error: HttpErrorResponse) => {
+                                    console.error("Error loading user: ", error.error.message);
+                                }
+                            }
+
+                        );
+                    }
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.toastComponent.message = error.error.message;
+                    this.toastComponent.toastType = 'danger';
+                    this.triggerToast();
+
+                }
+            });
+    }
+
+    private getOwnedProjects() {
+        this.projectService.listProjects()
+            .subscribe({
+                next: (resp) => {
+                    this.dataSource.data = resp.projects as Project[];
+                    this.dataSource.paginator = this.paginator;
+                    this.dataSource.sort = this.sort;
+                    for (let i = 0; i <= this.dataSource.data.length - 1; i++) {
+                        if (this.dataSource.data[i].TeamspaceID) {
+                            this.teamspaceService.getTeamspaceById(this.dataSource.data[i].TeamspaceID).subscribe(
+                                {
+                                    next: (resp) => {
+                                        this.teamspaces[this.dataSource.data[i].ID] = resp.teamspace;
+                                    },
+                                    error: (error: HttpErrorResponse) => {
+                                        console.error("Error loading teamspace: ", error.error.message);
+                                    }
+                                }
+
+                            );
+                        }
+                    }
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.toastComponent.message = "Failed to fetch projects. Please try again later.";
+                    this.toastComponent.toastType = 'info';
+                    this.triggerToast();
+                }
+            });
     }
 
     triggerToast(): void {

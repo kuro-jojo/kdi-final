@@ -32,7 +32,7 @@ export class ProjectService {
     }
 
     listProjects(): Observable<any> {
-        return this.http.get<any>(this.apiUrl)
+        return this.http.get<any>(this.apiUrl + '/owned')
     }
 
     listProjectsOfJoinedTeamspaces(): Observable<any> {

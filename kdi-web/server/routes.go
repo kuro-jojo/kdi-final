@@ -40,12 +40,12 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 
 		projects := dashboard.Group("projects")
 		{
-			projects.GET("", controllers.GetProjectsByCreator)
-			projects.GET("/joinedTeamspaces", controllers.GetProjectsOfJoinedTeamspaces)
+			projects.GET("owned", controllers.GetProjectsByCreator)
+			projects.GET("joinedTeamspaces", controllers.GetProjectsOfJoinedTeamspaces)
 			projects.POST("", controllers.CreateProject)
-			projects.GET(":project_id", controllers.GetProject)
-			projects.PATCH(":project_id", controllers.UpdateProject)
-			projects.DELETE(":project_id", controllers.DeleteProject)
+			projects.GET(":id", controllers.GetProject)
+			projects.PATCH(":id", controllers.UpdateProject)
+			projects.DELETE(":id", controllers.DeleteProject)
 		}
 
 		teamspaces := dashboard.Group("teamspaces")
@@ -54,7 +54,8 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 			teamspaces.GET("owned", controllers.GetTeamspacesByCreator)
 			teamspaces.GET("joined", controllers.GetAllJoinedTeamspaces)
 			teamspaces.GET(":id", controllers.GetTeamspace)
-			teamspaces.GET("projects/:team_id", controllers.GetProjectsByTeamspace)
+
+			teamspaces.GET(":id/projects", controllers.GetProjectsByTeamspace)
 
 			teamspaces.PATCH(":id/members", controllers.AddMemberToTeamspace)
 			teamspaces.DELETE(":id/members/:memberId", controllers.RemoveMemberFromTeamspace)
@@ -71,20 +72,29 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 		clusters := dashboard.Group("clusters")
 		{
 			clusters.POST("", controllers.AddCluster)
+			clusters.GET("owned", controllers.GetClustersByCreator)
+			clusters.GET("teamspaces", controllers.GetClustersByTeamspace)
 			clusters.GET(":id", controllers.GetClusterByIDAndCreator)
 			clusters.PATCH(":id", controllers.UpdateCluster)
 			clusters.DELETE(":id", controllers.DeleteCluster)
-			clusters.GET("owned", controllers.GetClustersByCreator)
-			clusters.GET("teamspaces", controllers.GetClustersByTeamspace)
+
+			clusters.GET(":id/environments", controllers.GetEnvironmentsByCluster)
 		}
 
 		environments := dashboard.Group("environments")
 		{
 			environments.POST("", controllers.CreateEnvironment)
 			environments.GET("", controllers.GetEnvironments)
-			environments.GET("/ByCluster", controllers.GetEnvironmentsByCluster)
 			environments.GET(":e_id", controllers.GetEnvironment)
 			environments.GET("projects/:project_id", controllers.GetEnvironmentsByProject)
+
+			microservices := environments.Group(":e_id/microservices")
+			{
+				// microservices.POST("", controllers.CreateMicroservice)
+				microservices.GET("", controllers.GetMicroservicesByEnvironment)
+				microservices.POST("with-yaml", controllers.CreateMicroserviceWithYaml)
+				microservices.GET(":m_id", controllers.GetMicroserviceByEnvironment)
+			}
 		}
 	}
 }

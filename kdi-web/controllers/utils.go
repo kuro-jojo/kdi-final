@@ -22,6 +22,7 @@ func GetUserFromContext(c *gin.Context) (models.User, db.Driver) {
 	return user, driver
 }
 
+// GenerateJWT generates a JWT token with the given claims
 func GenerateJWT(claims map[string]interface{}) (string, error) {
 	var (
 		key []byte
@@ -29,9 +30,9 @@ func GenerateJWT(claims map[string]interface{}) (string, error) {
 		s   string
 	)
 
-	key = []byte(os.Getenv("KDI_JWT_SECRET_KEY"))
+	key = []byte(os.Getenv("JWT_SECRET_KEY"))
 
-	claims["iss"] = os.Getenv("KDI_JWT_ISSUER") // issuer
+	claims["iss"] = os.Getenv("JWT_ISSUER") // issuer
 
 	t = jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims(claims))
 	s, err := t.SignedString(key)
@@ -41,6 +42,7 @@ func GenerateJWT(claims map[string]interface{}) (string, error) {
 	return s, nil
 }
 
+// RetrieveTokenFromK8sJWT return the token from the JWT token string as a jwt.Token
 func RetrieveTokenFromK8sJWT(tokenString string, secretKey string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, nil)
 
@@ -58,7 +60,7 @@ func RetrieveTokenFromK8sJWT(tokenString string, secretKey string) (*jwt.Token, 
 }
 
 func GetTokenExpirationDate(tokenString string) (time.Time, error) {
-	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("KDI_JWT_SECRET_KEY"))
+	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("JWT_SECRET_KEY"))
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -77,4 +79,19 @@ func GetTokenExpirationDate(tokenString string) (time.Time, error) {
 		return tm, nil
 	}
 	return time.Time{}, fmt.Errorf("error while parsing token")
+}
+
+// GetClusterTokenFromJWT returns the cluster token (service account token) from the JWT token string stored in the database
+func GetClusterTokenFromJWT(tokenString string) (string, error) {
+	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("JWT_SECRET_KEY"))
+	if err != nil {
+		return "", err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		if claims["token"] == "" {
+			return "", fmt.Errorf("cluster token not found")
+		}
+		return claims["token"].(string), nil
+	}
+	return "", fmt.Errorf("error while parsing token")
 }

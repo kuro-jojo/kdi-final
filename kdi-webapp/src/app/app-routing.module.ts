@@ -34,7 +34,7 @@ const routes: Routes = [
     { path: "projects/:id/environments/add", component: CreateEnvironmentComponent, title: "Add new environment", canActivate: [AuthGuard] },
     { path: "projects", component: ListProjectsComponent, canActivate: [AuthGuard], title: "List of projects" },
 
-    { path: "environments/:id/deployments/with-yaml", component: AddMicroserviceYamlComponent, title: "Deploy with helm", canActivate: [AuthGuard]},
+    { path: "environments/:id/deployments/with-yaml", component: AddMicroserviceYamlComponent, title: "Deploy with helm", canActivate: [AuthGuard] },
     { path: "environments/add", component: CreateEnvironmentComponent, title: "Add new environment", canActivate: [AuthGuard] },
 
     { path: "clusters/local/:id/edit", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Edit cluster" },
@@ -42,8 +42,8 @@ const routes: Routes = [
     { path: "clusters/add", component: AddClusterComponent, canActivate: [AuthGuard], title: "Add new cluster" },
     { path: "clusters", component: ListClustersComponent, canActivate: [AuthGuard], title: "List of clusters" },
 
-    { path: "teamspaces/:teamId", component: ViewTeamspaceComponent, canActivate: [AuthGuard], title: "Team details" },
     { path: "teamspaces/add", component: CreateTeamspaceComponent, canActivate: [AuthGuard], title: "Add new teamspace" },
+    { path: "teamspaces/:teamId", component: ViewTeamspaceComponent, canActivate: [AuthGuard], title: "Team details" },
     { path: "teamspaces", component: ListTeamspacesComponent, canActivate: [AuthGuard], title: "List of teamspaces" },
 
     { path: "deployments/helm", component: DeploymentWithHelmComponent, canActivate: [AuthGuard], title: "Deploy with helm" },
