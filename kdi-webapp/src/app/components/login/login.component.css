@@ -90,8 +90,7 @@ h5 {
 .app-name {
   margin-top: 80px;
 }
-label {
-}
+
 .input-with-icon {
   position: relative;
 }
@@ -110,4 +109,8 @@ label {
   color: #3a46c9;
   text-decoration: underline;
   margin-top: 1rem;
+}
+
+.spinner-border {
+  margin-right: 0.6rem;
 }

@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, forkJoin, map } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Teamspace } from '../_interfaces/teamspace';
-import { HeadersService } from './headers.service';
 
 @Injectable({
     providedIn: 'root'
@@ -14,14 +13,13 @@ export class TeamspaceService {
 
     constructor(
         private http: HttpClient,
-        private headerService: HeadersService
     ) { }
 
 
     createTeamspace(teamspace: Teamspace): Observable<any> {
-        const headers = this.headerService.getHeaders();
-        return this.http.post<any>(this.apiUrl, teamspace, { headers })
+        return this.http.post<any>(this.apiUrl, teamspace)
     }
+
     listTeamspacesOwned(): Observable<any> {
         return this.http.get<any>(this.apiUrl + '/owned')
     }
@@ -29,6 +27,7 @@ export class TeamspaceService {
     listTeamspacesJoined(): Observable<any> {
         return this.http.get<any>(this.apiUrl + '/joined')
     }
+
     getTeamDetails(id: string): Observable<any> {
         return this.http.get<any>(this.apiUrl + '/' + id)
     }
@@ -52,4 +51,11 @@ export class TeamspaceService {
     getTeamspaceById(id: string): Observable<any> {
         return this.http.get<any>(this.apiUrl + '/' + id)
     }
+
+    getTeamspaceClusters(teamId: string): Observable<any> {
+        return this.http.get<any>(this.apiUrl + '/' + teamId + '/clusters')
+    }
 }
+
+
+

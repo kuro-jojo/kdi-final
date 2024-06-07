@@ -1,5 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Cluster } from 'src/app/_interfaces/cluster';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,11 +6,11 @@ import { ClusterService } from 'src/app/_services/cluster.service';
 import { first } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { EnvironmentService } from 'src/app/_services/environment.service';
-import { UserService } from 'src/app/_services';
 import { Project } from 'src/app/_interfaces/project';
 import { ProjectService } from 'src/app/_services/project.service';
 import { Environment } from 'src/app/_interfaces/environment';
 import { ServerService } from 'src/app/_services/server.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
     selector: 'app-create-environment',
@@ -19,8 +18,6 @@ import { ServerService } from 'src/app/_services/server.service';
     styleUrl: './create-environment.component.css'
 })
 export class CreateEnvironmentComponent {
-
-    @ViewChild(ToastComponent) toastComponent!: ToastComponent;
     environmentForm: FormGroup;
     submitted = false;
     clusters: { clusters: Cluster[], size: number } = { clusters: [], size: 0 };
@@ -32,11 +29,12 @@ export class CreateEnvironmentComponent {
         private formBuilder: FormBuilder,
         private router: Router,
         private route: ActivatedRoute,
-        private userService: UserService,
         private clusterService: ClusterService,
         private projectService: ProjectService,
         private serverService: ServerService,
-        private environmentService: EnvironmentService,) {
+        private environmentService: EnvironmentService,
+        private messageService: MessageService,
+    ) {
         this.environmentForm = new FormGroup({});
     }
 
@@ -62,10 +60,10 @@ export class CreateEnvironmentComponent {
 
         this.serverService.serverStatus().subscribe({
             next: (resp) => {
-                this.clusterService.getClusters().subscribe(
+                this.clusterService.getOwnedClusters().subscribe(
                     (resp) => { this.clusters = resp; }
                 )
-                this.projectService.listProjects().subscribe(
+                this.projectService.getOwnedProjects().subscribe(
                     (resp) => { this.projects = resp; }
                 )
             }, error: () => {
@@ -83,37 +81,18 @@ export class CreateEnvironmentComponent {
             return;
         }
         this.environment = { ...this.environment, ...this.environmentForm.value };
-        if (this.userService.isAuthentificated) {
-            this.environmentService.createEnvironment(this.environment)
-                .pipe(first())
-                .subscribe({
-                    next: (resp) => {
-                        this.toastComponent.message = "You have successfully created an environment!";
-                        this.toastComponent.toastType = 'success';
-                        this.triggerToast();
-                        this.router.navigate(['/projects/' + this.environmentForm.controls['ProjectID'].value])
-                    },
-                    error: (error: HttpErrorResponse) => {
-                        this.toastComponent.message = error.error.message;
-                        this.toastComponent.toastType = 'danger';
-                        if (error.status == 0) {
-                            this.toastComponent.message = "Server is not available";
-                            this.toastComponent.toastType = 'info';
-                        }
-                        this.triggerToast();
-                    },
-                    complete: () => {
-                        console.log("Environment created successfully");
-                    }
-                })
-        } else {
-            this.toastComponent.message = 'Token invalide';
-            this.toastComponent.toastType = 'danger';
-        }
-    }
-
-    triggerToast(): void {
-        this.toastComponent.showToast();
+        this.environmentService.createEnvironment(this.environment)
+            .pipe(first())
+            .subscribe({
+                next: (resp) => {
+                    this.messageService.add({ severity: 'success', summary: "You have successfully created the environment!" });
+                    this.router.navigate(['/projects/' + this.environmentForm.controls['ProjectID'].value])
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.messageService.add({ severity: 'error', summary: 'Creation failed', detail: error.error.message });
+                    console.error("Environment creation error :", error);
+                }
+            })
     }
 
 }

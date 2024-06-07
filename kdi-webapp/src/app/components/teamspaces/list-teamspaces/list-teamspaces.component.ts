@@ -3,11 +3,11 @@ import { Teamspace } from 'src/app/_interfaces/teamspace';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { UserService } from 'src/app/_services';
 import { ServerService } from 'src/app/_services/server.service';
+import { MessageService } from 'primeng/api';
 
 
 @Component({
@@ -16,7 +16,7 @@ import { ServerService } from 'src/app/_services/server.service';
     styleUrl: './list-teamspaces.component.css'
 })
 export class ListTeamspacesComponent {
-    @ViewChild(ToastComponent) toastComponent!: ToastComponent;
+
 
     displayedColumns: string[] = ['Name', 'Description', 'CreatedAt', 'actions'];
     displayedColumnsforJoined: string[] = ['Name', 'Description', 'CreatedAt', 'CreatorID', 'actions'];
@@ -32,7 +32,9 @@ export class ListTeamspacesComponent {
     constructor(
         private teamspaceService: TeamspaceService,
         private userService: UserService,
-        private serverService: ServerService,) {
+        private serverService: ServerService,
+        private messageService: MessageService,
+    ) {
     }
 
     ngOnInit() {
@@ -47,10 +49,8 @@ export class ListTeamspacesComponent {
 
                         },
                         error: (error: HttpErrorResponse) => {
-                            this.toastComponent.message = "Failed to fetch teamspaces. Please try again later.";
-                            this.toastComponent.toastType = 'info';
-                            this.triggerToast();
-                            console.log(error);
+                            this.messageService.add({ severity: 'info', summary: "Failed to fetch teamspaces. Please try again later." });
+                            console.log("Teamspace fetch error: ", error);
                         }
                     });
 
@@ -76,22 +76,11 @@ export class ListTeamspacesComponent {
                             }
                         },
                         error: (_error: HttpErrorResponse) => {
-                            this.toastComponent.message = "Failed to fetch teamspaces. Please try again later.";
-                            this.toastComponent.toastType = 'info';
-                            this.triggerToast();
+                            this.messageService.add({ severity: 'info', summary: "Failed to fetch joined teamspaces. Please try again later." });
+                            console.log("Teamspace fetch error: ", _error);
                         }
                     });
             },
-            error: (_error: HttpErrorResponse) => {
-                this.toastComponent.message = "Failed to fetch teamspaces. Please try again later.";
-                this.toastComponent.toastType = 'info';
-                this.triggerToast();
-            }
         });
     }
-
-    triggerToast(): void {
-        this.toastComponent.showToast();
-    }
-
 }

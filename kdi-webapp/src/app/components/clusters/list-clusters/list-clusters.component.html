@@ -4,11 +4,12 @@
         <!-- Sidebar -->
         <div class="col-md-3">
             <app-sidebar></app-sidebar>
+            <p-toast />
         </div>
 
         <div class="col-md-8">
             <main id="main" class="main">
-                <app-toast></app-toast>
+                <p-toast />
                 <div class="pagetitle">
                     <h1>Clusters</h1>
                     <nav>
@@ -23,7 +24,7 @@
                 <div class="d-flex justify-content-end">
                     <div class="text-start mb-5">
                         <button class="btn btn-outline-secondary" style="margin-right: 1rem;" (click)="reloadPage()">
-                            <img src="assets/img/refresh.svg" alt="Refresh">
+                            <img src="assets/img/refresh.svg" alt="Refresh" class="m-1">
                             Refresh</button>
                     </div>
 

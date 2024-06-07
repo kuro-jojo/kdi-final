@@ -1,0 +1,181 @@
+<app-navbar></app-navbar>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <app-sidebar></app-sidebar>
+        </div>
+
+        <div class="col-md-7 ml-4">
+            <main id="main" class="main">
+                <div class="pagetitle">
+                    <h1>Environment</h1>
+                    <nav>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a [routerLink]="['']">Home</a></li>
+                            <li class="breadcrumb-item">
+                                <a *ngIf="!env?.environment?.ProjectID" [routerLink]="['/projects']">Projects</a>
+                                <a *ngIf="env?.environment?.ProjectID"
+                                    [routerLink]="['/projects', env.environment.ProjectID]">Project</a>
+                            </li>
+                            <li class="breadcrumb-item active">Environment</li>
+                        </ol>
+                    </nav>
+                </div><!-- End Page Title -->
+
+
+                <!-- invite someone -->
+                <div class="text-end mb-5">
+                    <button class="btn btn-outline-primary" [routerLink]="['deployments/with-yaml']">New Deployment</button>
+                </div>
+
+                <div class="card">
+                    <p-toast />
+                    <div class="card-body" *ngIf="env">
+                        <h5 class="card-title">Environment's informations</h5>
+                        <div class="text-end">
+                            <button class="btn btn-outline-primary" data-bs-toggle="modal"
+                                data-bs-target="#editEnvModal">Modify informations</button>
+                        </div>
+                        <div class="modal fade" id="editEnvModal" tabindex="-1" aria-labelledby="editEnvModalLabel"
+                            aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="editEnvModalLabel">Modify Environment</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close" #closeModal></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form (submit)="confirmUpdate()">
+                                            <div class="mb-3">
+                                                <label for="name" class="form-label">Name</label>
+                                                <input type="text" class="form-control" id="name" name="name"
+                                                    [(ngModel)]="env.environment.Name">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="description" class="form-label">Description</label>
+                                                <input type="text" class="form-control" id="description"
+                                                    name="description" [(ngModel)]="env.environment.Description">
+                                            </div>
+
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-outline-primary"
+                                            (click)="confirmUpdate()">Confirm</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="env-info mb-2">
+                            <span class="text-bold">Name : </span><span>{{env.environment.Name}}</span>
+                        </div>
+                        <div class="env-info mb-2">
+                            <span class="text-bold">Description : </span><span>{{env.environment.Description ?
+                                env.environment.Description : "No description"}}</span>
+                        </div>
+                        <div class="env-info mb-2" *ngIf="cluster">
+                            <span class="text-bold">Cluster : </span>{{cluster.Name}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Deployed Microservices</h5>
+
+                        <!--<div class="text-end mb-3">
+                            <button class="btn btn-outline-primary" [routerLink]="['']"></button>
+                        </div>-->
+
+                        <table mat-table [dataSource]="dataSource" matSort>
+
+                            <ng-container matColumnDef="Name">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by name">
+                                    Name
+                                </th>
+                                <td mat-cell *matCellDef="let element" class="fw-medium"> {{element.Name}} </td>
+                            </ng-container>
+
+                            <!--<ng-container matColumnDef="Namespace">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by Namespace">
+                                    Namespace
+                                </th>
+                                <td mat-cell *matCellDef="let element"
+                                    [ngClass]="{'fst-italic' : !element.NamespaceID}"> {{element.NamespaceID"}} </td>
+                            </ng-container>-->
+
+
+                            <!--<ng-container matColumnDef="Labels">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by Labels">
+                                    Labels
+                                </th>
+                                <td mat-cell *matCellDef="let element">{{ element.Labels}} </td>
+                            </ng-container>-->
+
+                            <ng-container matColumnDef="Strategy">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by strategy">
+                                    Strategy Used
+                                </th>
+                                <td mat-cell *matCellDef="let element">{{ element.Strategy}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="Conditions">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by status">
+                                    Microservice's Status
+                                </th>
+                                <td mat-cell *matCellDef="let element"
+                                    [ngClass]="{'Running': element.Conditions[0].type === 'Available', 'pending': element.Conditions[0].type === 'Progressing'}">
+                                    {{ element.Conditions[0].type}} </td>
+                            </ng-container>
+
+                            <!--<ng-container matColumnDef="NamespaceID">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by Namespace">
+                                    Namespace
+                                </th>
+                                <td mat-cell *matCellDef="let element"
+                                    [ngClass]="{'fst-italic' : !element.NamespaceID}"> {{element.NamespaceID ?element.NamespaceID:"Default"}} </td>
+                            </ng-container>-->
+
+                            <ng-container matColumnDef="Replicas">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by replicas">
+                                    Number of replicas
+                                </th>
+                                <td mat-cell *matCellDef="let element">{{ element.Replicas}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="actions">
+                                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                                <td mat-cell *matCellDef="let project">
+                                    <button mat-icon-button color="warn" class="btn btn-outline-primary">
+                                        <mat-icon>view</mat-icon>
+                                    </button>
+
+                                </td>
+                            </ng-container>
+
+
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                        </table>
+                        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
+                            aria-label="Select page of microservices">
+                        </mat-paginator>
+
+
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>

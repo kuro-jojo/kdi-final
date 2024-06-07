@@ -1,5 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { UserService } from 'src/app/_services/user.service';
 import { ProjectService } from 'src/app/_services/project.service';
 import { MatPaginator } from '@angular/material/paginator';
@@ -14,6 +13,7 @@ import { Teamspace } from 'src/app/_interfaces/teamspace';
 import { User } from 'src/app/_interfaces';
 import { ReloadComponent } from 'src/app/component.util';
 import { ServerService } from 'src/app/_services/server.service';
+import { MessageService } from 'primeng/api';
 
 
 
@@ -23,7 +23,6 @@ import { ServerService } from 'src/app/_services/server.service';
     styleUrl: './list-projects.component.css'
 })
 export class ListProjectsComponent {
-    @ViewChild(ToastComponent) toastComponent!: ToastComponent;
     displayedColumns: string[] = ['Name', 'Description', 'CreatedAt', 'Teamspace', 'actions'];
     displayedColumnsforJoined: string[] = ['Name', 'Description', 'CreatedAt', 'Teamspace', 'CreatorID', 'actions'];
     dataSource: MatTableDataSource<Project> = new MatTableDataSource<Project>();
@@ -47,6 +46,7 @@ export class ListProjectsComponent {
         private teamspaceService: TeamspaceService,
         private userService: UserService,
         private serverService: ServerService,
+        private messageService: MessageService,
     ) {
     }
 
@@ -59,15 +59,8 @@ export class ListProjectsComponent {
             .subscribe({
                 next: () => {
                     this.getOwnedProjects();
-
                     this.getJoinedProjects();
                 },
-                error: (error: HttpErrorResponse) => {
-                    this.toastComponent.message = "Server is not available. Please try again later"
-                    this.toastComponent.toastType = 'info';
-                    this.triggerToast();
-                    //console.log(error);
-                }
             });
 
     }
@@ -111,16 +104,13 @@ export class ListProjectsComponent {
                     }
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.toastComponent.message = error.error.message;
-                    this.toastComponent.toastType = 'danger';
-                    this.triggerToast();
-
+                    this.messageService.add({ severity: 'error', summary: error.error.message });
                 }
             });
     }
 
     private getOwnedProjects() {
-        this.projectService.listProjects()
+        this.projectService.getOwnedProjects()
             .subscribe({
                 next: (resp) => {
                     this.dataSource.data = resp.projects as Project[];
@@ -143,15 +133,9 @@ export class ListProjectsComponent {
                     }
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.toastComponent.message = "Failed to fetch projects. Please try again later.";
-                    this.toastComponent.toastType = 'info';
-                    this.triggerToast();
+                    this.messageService.add({ severity: 'info', summary: "Failed to fetch projects. Please try again later." });
                 }
             });
-    }
-
-    triggerToast(): void {
-        this.toastComponent.showToast();
     }
 
     getProjectName(projectId: string) {
@@ -165,9 +149,7 @@ export class ListProjectsComponent {
     deleteProject(projectId: string): void {
         if (confirm('Are you sure you want to delete this project?')) {
             this.projectService.deleteProject(projectId).subscribe(() => {
-                this.toastComponent.message = "Project deleted successfully!";
-                this.toastComponent.toastType = 'success';
-                this.triggerToast();
+                this.messageService.add({ severity: 'info', summary: "Project deleted successfully!" });
                 // Rechargement de la liste des projets après la suppression
                 this.reloadPage();
             });
@@ -187,11 +169,6 @@ export class ListProjectsComponent {
         });
     }
     }*/
-    confirmDeleteProject(project: any) {
-        this.projectToDelete = project;
-
-    }
-
     reloadPage() {
         ReloadComponent(true, this.router);
     }

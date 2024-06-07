@@ -1,4 +1,3 @@
-import { HttpResponse } from '@angular/common/http';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -34,7 +33,7 @@ export class AddMicroserviceYamlComponent {
         });
     }
 
-    onUpload(event: FileUploadHandlerEvent, fileUpdoad: any) {
+    onUpload(event: FileUploadHandlerEvent) {
         this.uploadedFiles = [];
         for (let file of event.files) {
             this.uploadedFiles.push(file);
@@ -45,26 +44,30 @@ export class AddMicroserviceYamlComponent {
                 this.messages = resp.messages;
                 this.microservices = resp.microservices;
                 this.uploadedFiles = [];
+                if (this.messages && this.messages.success.length > 0) {
+                    this.messageService.add({ severity: 'success', summary: 'Deployments added successfully', detail: ' ' });
+                }
             },
             error: (error) => {
                 this.overlay.nativeElement.style.display = 'none';
                 if (error.status === 0) {
                     this.messageService.add({ severity: 'info', summary: 'Server is down', detail: 'Please try again later' });
                 }
-                this.messages = error.error.messages;
-                this.microservices = error.error.microservices;
-
-                if (!this.messages.success || this.messages.success.length === 0) {
-                    this.messageService.add({ severity: 'error', summary: 'Deployment with yaml failed', detail: "Please check the yaml files and try again" });
+                if (error.error) {
+                    this.messages = error.error.messages;
                 }
-                console.log('Error adding deployment with yaml', this.messages.error);
+                if (error.error) {
+                    this.microservices = error.error.microservices;
+                }
+                if (this.messages && !this.messages.success || this.messages.success.length === 0) {
+                    this.messageService.add({ severity: 'error', summary: 'Failed to add deployments with yaml', detail: 'Please check your yaml files' });
+                }
+                console.log('Error adding deployment with yaml', error);
                 this.uploadedFiles = [];
-                fileUpdoad.clear();
             },
             complete: () => {
                 this.overlay.nativeElement.style.display = 'none';
                 // See if we will clear the file upload or not
-                fileUpdoad.clear();
             }
         });
 

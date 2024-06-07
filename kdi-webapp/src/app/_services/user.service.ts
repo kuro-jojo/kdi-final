@@ -30,8 +30,12 @@ export class UserService {
         localStorage.setItem(this.tokenKey, token);
     }
 
+    getCurrentUser(): Observable<any> {
+        return this.http.get<User>(this.apiUrl + `/dashboard/users/current`)
+    }
+
     getUserById(id: string): Observable<any> {
-        return this.http.get<User>(this.apiUrl + `/dashboard/users/`+id)
+        return this.http.get<User>(this.apiUrl + `/dashboard/users/` + id)
     }
 
     register(user: User): Observable<any> {
@@ -60,7 +64,8 @@ export class UserService {
     logout() {
         if (this.userToken != null) {
             this.userToken = null;
-            localStorage.removeItem(this.tokenKey);
+            // localStorage.removeItem(this.tokenKey);
+            localStorage.clear();
         }
     }
 }

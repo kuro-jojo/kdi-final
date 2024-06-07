@@ -1,13 +1,12 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProjectService } from 'src/app/_services/project.service';
 import { Router } from '@angular/router';
 import { first } from 'rxjs';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { HttpErrorResponse } from '@angular/common/http';
-import { UserService } from 'src/app/_services';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
 import { Teamspace } from 'src/app/_interfaces/teamspace';
+import { MessageService } from 'primeng/api';
 
 @Component({
     selector: 'app-create-project',
@@ -15,7 +14,7 @@ import { Teamspace } from 'src/app/_interfaces/teamspace';
     styleUrl: './create-project.component.css'
 })
 export class CreateProjectComponent {
-    @ViewChild(ToastComponent) toastComponent!: ToastComponent;
+
     projectForm: FormGroup;
     submitted = false;
     teamspaces: { teamspaces: Teamspace[], size: number } = { teamspaces: [], size: 0 };
@@ -23,14 +22,11 @@ export class CreateProjectComponent {
     constructor(
         private formBuilder: FormBuilder,
         private router: Router,
-        private userService: UserService,
         private teamService: TeamspaceService,
-        private projectService: ProjectService,) {
+        private projectService: ProjectService,
+        private messageService: MessageService,
+    ) {
         this.projectForm = new FormGroup({});
-    }
-
-    triggerToast(): void {
-        this.toastComponent.showToast();
     }
 
     chooseTeamsapce($event: Event) {
@@ -63,36 +59,17 @@ export class CreateProjectComponent {
         if (!formData.teamspace) {
             delete formData.teamspace;
         }
-        if (this.userService.isAuthentificated) {
-
-            this.projectService.createProject(formData)
-                .pipe(first())
-                .subscribe({
-                    next: (resp) => {
-                        this.toastComponent.message = "You have successfully created a project!";
-                        this.toastComponent.toastType = 'success';
-                        this.triggerToast();
-                        this.router.navigate(['/projects'])
-                    },
-                    error: (error: HttpErrorResponse) => {
-                        this.toastComponent.message = error.error.message;
-                        this.toastComponent.toastType = 'danger';
-                        if (error.status == 0) {
-                            this.toastComponent.message = "Server is not available";
-                            this.toastComponent.toastType = 'info';
-                        }
-                        this.triggerToast();
-
-                        console.error("Project creation error :" + error.error.message);
-                        console.log('le formulaire', this.projectForm.controls)
-                    },
-                    complete: () => {
-                        console.log("Project created successfully");
-                    }
-                })
-        } else {
-            this.toastComponent.message = 'Token invalide';
-            this.toastComponent.toastType = 'danger';
-        }
+        this.projectService.createProject(formData)
+            .pipe(first())
+            .subscribe({
+                next: (resp) => {
+                    this.messageService.add({ severity: 'success', summary: "You have successfully created the project!" });
+                    this.router.navigate(['/projects'])
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.messageService.add({ severity: 'error', summary: error.error.message });
+                    console.error("Project creation error :", error.error.message);
+                }
+            })
     }
 }

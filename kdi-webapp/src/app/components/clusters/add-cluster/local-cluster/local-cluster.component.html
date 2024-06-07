@@ -3,7 +3,7 @@
     <!-- Sidebar -->
     <div class="col-md-3">
         <app-sidebar></app-sidebar>
-        <app-toast></app-toast>
+        <p-toast />
     </div>
 
     <div class="col-md-8">
@@ -14,8 +14,9 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a [routerLink]="['/']">Home</a></li>
                         <li class="breadcrumb-item"><a [routerLink]="['/clusters']">Clusters</a></li>
-                        <li class="breadcrumb-item"><a [routerLink]="['/clusters/add']">Add</a></li>
-                        <li class="breadcrumb-item active">Local</li>
+                        <li *ngIf="!isEditMode" class="breadcrumb-item"><a [routerLink]="['/clusters/add']">Add</a></li>
+                        <li *ngIf="isEditMode" class="breadcrumb-item active">Edit</li>
+                        <li *ngIf="!isEditMode" class="breadcrumb-item active">Local</li>
                     </ol>
                 </nav>
             </div>
@@ -104,7 +105,7 @@
                             <button *ngIf="!isEditMode" type="submit" class="btn btn-outline-success"><span
                                     *ngIf="addLoading"
                                     class="spinner-border spinner-border-sm mr-1"></span>Create</button>
-                            <button *ngIf="isEditMode" type="submit" class="btn btn-success"
+                            <button *ngIf="isEditMode" type="submit" class="btn btn-outline-success"
                                 style="margin-right: 1rem;"><span *ngIf="editLoading"
                                     class="spinner-border spinner-border-sm mr-1"></span>Save</button>
                             <button *ngIf="isEditMode" type="button" class="btn btn-danger" style="margin-right: 1rem;"

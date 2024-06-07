@@ -1,20 +1,20 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Environment } from 'src/app/_interfaces/environment';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Environment } from '../_interfaces/environment';
-import { Observable, catchError, map } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class EnvironmentService {
 
-  readonly API_URL = environment.apiUrl + '/dashboard/environments';
+    readonly API_URL = environment.apiUrl + '/dashboard/environments';
     constructor(
         private http: HttpClient,
     ) { }
 
-    createEnvironment(environment: Environment ): Observable<any> {
+    createEnvironment(environment: Environment): Observable<any> {
         return this.http.post<Environment>(this.API_URL, environment)
     }
 
@@ -22,27 +22,23 @@ export class EnvironmentService {
         return this.http.get<any>(this.API_URL + '/ByCluster')
     }
 
-    getlistProjectEnvironments(id:string): Observable<any> {
-      return this.http.get<any>(this.API_URL+'/projects/'+id).pipe(
-        map(resp => resp),
-        catchError((error: HttpErrorResponse) => {
-          console.error("Error during getting environments:", error);
-          throw error; 
-        })
-      );
+    getlistProjectEnvironments(id: string): Observable<any> {
+        return this.http.get<any>(this.API_URL + '/projects/' + id)
+    }
+
+    updateEnvironment(environment: Environment): Observable<any> {
+        return this.http.patch<Environment>(this.API_URL + '/' + environment.ID, environment)
+    }
+
+    deleteEnvironment(id: string): Observable<any> {
+        return this.http.delete(this.API_URL + '/' + id);
     }
 
     getEnvironmentDetails(id: string): Observable<any> {
-      return this.http.get<any>(this.API_URL+'/'+id).pipe(
-        map(resp => resp), 
-        catchError((error: HttpErrorResponse) => {
-          console.error("Error during getting environment:", error);
-          throw error; 
-        })
-      );
+        return this.http.get<any>(this.API_URL + '/' + id)
     }
 
-
-
-  
+    getMicroservices(id: string): Observable<any> {
+        return this.http.get<any>(this.API_URL + '/' + id + '/microservices')
+    }
 }

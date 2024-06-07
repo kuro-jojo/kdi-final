@@ -1,10 +1,8 @@
-
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
 import { environment } from 'src/environments/environment';
-import { Observable, catchError, map } from 'rxjs';
-import { Cluster } from '../_interfaces/cluster';
+import { Observable } from 'rxjs';
 
 
 @Injectable({ providedIn: 'root' })

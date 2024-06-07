@@ -1,0 +1,27 @@
+h1 {
+  font-size: 200px;
+  font-style: italic;
+  color: #012970;
+}
+h2 {
+  font-size: 45px;
+  color: #012970;
+}
+main {
+  margin-top: 10%;
+}
+p {
+  margin-top: 30px;
+  font-size: 30px;
+}
+a:hover {
+  color: #fff;
+  background-color: #dc8100;
+  text-decoration: none;
+}
+a {
+  background-color: #333;
+  color: #fff;
+  margin-top: 20px;
+  text-decoration: none;
+}

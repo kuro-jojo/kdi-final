@@ -1,8 +1,10 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { NotificationService } from 'src/app/_services/notification.service';
 import { Notification } from 'src/app/_interfaces/notification';
-import { ServerService } from 'src/app/_services/server.service';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
+import { UserService } from 'src/app/_services';
+import { User } from 'src/app/_interfaces';
+import { MessageService } from 'primeng/api';
+import { timer } from 'rxjs';
 
 @Component({
     selector: 'app-navbar',
@@ -10,37 +12,46 @@ import { ToastComponent } from 'src/app/components/toast/toast.component';
     styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent {
-    @ViewChild(ToastComponent) toastComponent!: ToastComponent;
+
     notifications: Notification[] = [];
     unreadNotifications: number = 0;
+    user: User = {} as User;
 
     constructor(
         private notificationService: NotificationService,
-        private serverService: ServerService,
+        private userService: UserService,
+        private messageService: MessageService,
     ) {
-        this.serverService.serverStatus().subscribe({
+    }
+
+    ngOnInit(): void {
+        this.getNotifications();
+        this.getUserInfo();
+    }
+
+    getNotifications() {
+        this.notificationService.getNotifications().subscribe({
             next: (resp) => {
-                this.notificationService.getNotifications().subscribe({
-                    next: (resp) => {
-                        if (resp.notifications) {
-                            this.notifications = resp.notifications;
-                            this.unreadNotifications = this.notifications.filter(n => !n.WasRead).length;
-                        }
-                    },
-                    error: (error) => {
-                        console.error("Error fetching notifications: ", error);
-                    }
-                });
+                if (resp.notifications) {
+                    this.notifications = resp.notifications;
+                    this.unreadNotifications = this.notifications.filter(n => !n.WasRead).length;
+                }
             },
-            error: () => {
-                this.toastComponent.message = "Server is not available. Please try again later"
-                this.toastComponent.toastType = 'info';
-                this.triggerToast();
+            error: (error) => {
+                console.error("Error fetching notifications: ", error);
             }
         });
     }
 
-    ngOnInit(): void {
+    getUserInfo() {
+        return this.userService.getCurrentUser().subscribe({
+            next: (resp) => {
+                this.user = resp.user;
+            },
+            error: (error) => {
+                console.error("Error fetching user information: ", error);
+            }
+        });
     }
 
     showNotifications($event: any) {
@@ -86,7 +97,13 @@ export class NavbarComponent {
         }
     }
 
-    triggerToast(): void {
-        this.toastComponent.showToast();
+    logout() {
+        if (confirm("Are you sure you want to sign out?")) {
+            this.userService.logout();
+            this.messageService.add({ severity: 'info', summary: 'Logged out', detail: 'You have been successfully logged out' });
+            timer(1500).subscribe(() => {
+                window.location.reload();
+            });
+        }
     }
 }

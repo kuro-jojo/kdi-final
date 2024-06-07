@@ -19,7 +19,7 @@ export const AuthGuard: CanActivateFn = (_route, _state) => {
                 userService.token = tokenResponse.accessToken;
             },
             error: (error) => {
-                console.error("Error while acquiring token: " + error);
+                console.error("Error while acquiring token: ", error);
                 // TODO: redirect to 500 page
                 router.navigateByUrl('/login', { state: { redirect: _state.url } });
                 throw new Error("Error while acquiring token in AuthGuard");

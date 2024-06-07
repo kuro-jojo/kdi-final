@@ -22,6 +22,9 @@ import { ListProjectsComponent } from './components/projects/list-projects/list-
 import { DeploymentWithHelmComponent } from './components/deployment-with-helm/deployment-with-helm.component';
 import { CreateEnvironmentComponent } from './components/environments/create-environment/create-environment.component';
 import { AddMicroserviceYamlComponent } from './components/microservices/add-microservice-yaml/add-microservice-yaml.component';
+import { ServerDownComponent } from './components/errors/server-down/server-down.component';
+import { PageNotFoundComponent } from './components/errors/page-not-found/page-not-found.component';
+import { EnvironmentDetailsComponent } from './components/environments/create-environment/environment-details/environment-details.component';
 
 
 const routes: Routes = [
@@ -36,6 +39,7 @@ const routes: Routes = [
 
     { path: "environments/:id/deployments/with-yaml", component: AddMicroserviceYamlComponent, title: "Deploy with helm", canActivate: [AuthGuard] },
     { path: "environments/add", component: CreateEnvironmentComponent, title: "Add new environment", canActivate: [AuthGuard] },
+    { path: "environments/:envId", component: EnvironmentDetailsComponent, canActivate: [AuthGuard], title: "Environment details" },
 
     { path: "clusters/local/:id/edit", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Edit cluster" },
     { path: "clusters/add/local", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Add new local cluster" },
@@ -47,6 +51,9 @@ const routes: Routes = [
     { path: "teamspaces", component: ListTeamspacesComponent, canActivate: [AuthGuard], title: "List of teamspaces" },
 
     { path: "deployments/helm", component: DeploymentWithHelmComponent, canActivate: [AuthGuard], title: "Deploy with helm" },
+
+    { path: "500", component: ServerDownComponent, title: "Server down" },
+    { path: "**", component: PageNotFoundComponent, title: "Page not found" }
 ];
 
 @NgModule({

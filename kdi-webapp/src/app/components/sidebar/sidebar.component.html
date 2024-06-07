@@ -1,7 +1,7 @@
 <!-- ======= Sidebar ======= -->
 <aside id="sidebar" class="sidebar">
 
-    <ul class="sidebar-nav" id="sidebar-nav">
+    <ul class="sidebar-nav mt-2" id="sidebar-nav">
 
         <li class="nav-item">
             <a class="nav-link " [routerLink]="['']">
@@ -67,49 +67,7 @@
                     </a>
                 </li>
             </ul>
-        </li><!-- End Teamspace Nav -->
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-gear"></i><span>Deployments</span><i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="charts-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                <li>
-                    <a [routerLink]="['/environments/6649070fe4fc458542c812c5/deployments/with-yaml']">
-                        <i class="bi bi-circle"></i><span>Deploy with yaml files</span>
-                    </a>
-                </li>
-                <li>
-                    <a [routerLink]="['/deployments/helm']">
-                        <i class="bi bi-circle"></i><span>Deploy with helm charts</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <i class="bi bi-circle"></i><span>Generate deployment files</span>
-                    </a>
-                </li>
-            </ul>
-        </li><!-- End Deployments Nav -->
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#icons-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-arrow-clockwise"></i><span>Updates</span><i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                <li>
-                    <a href="#">
-                        <i class="bi bi-circle"></i><span>Update deployment file</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <i class="bi bi-circle"></i><span>Update deployment strategy</span>
-                    </a>
-                </li>
-            </ul>
-        </li><!-- End Icons Nav -->
-
+        </li>
     </ul>
 
 

@@ -6,7 +6,7 @@
             <app-sidebar></app-sidebar>
         </div>
 
-        <div class="col-md-8 ml-4">
+        <div class="col-md-8">
             <main id="main" class="main">
                 <div class="pagetitle">
                     <h1>Project</h1>
@@ -18,12 +18,6 @@
                         </ol>
                     </nav>
                 </div><!-- End Page Title -->
-
-
-                <!-- invite someone -->
-                <div class="text-end mb-5">
-                    <button class="btn btn-outline-primary">New Deployment</button>
-                </div>
 
                 <div class="card">
                     <div class="card-body">
@@ -123,13 +117,13 @@
 
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef>Actions</th>
-                                <td mat-cell *matCellDef="let project">
-                                    <button mat-icon-button color="warn" class="btn btn-outline-danger">
-                                        <mat-icon>delete</mat-icon>
-                                    </button>
-                                    <button mat-icon-button color="warn" class="btn btn-outline-primary">
+                                <td mat-cell *matCellDef="let env">
+                                    <button mat-icon-button color="warn" class="btn btn-outline-primary" (click)="onEnvClick(env.ID)">
                                         <mat-icon>view</mat-icon>
                                     </button>
+                                    <!--<button mat-icon-button color="warn" class="btn btn-outline-danger">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>-->
 
                                 </td>
                             </ng-container>

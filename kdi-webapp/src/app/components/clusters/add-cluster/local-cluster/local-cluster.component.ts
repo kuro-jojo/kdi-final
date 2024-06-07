@@ -1,13 +1,13 @@
 import { Location } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { first, forkJoin } from 'rxjs';
+import { MessageService } from 'primeng/api';
+import { first, forkJoin, timer } from 'rxjs';
 import { Cluster } from 'src/app/_interfaces/cluster';
 import { Teamspace } from 'src/app/_interfaces/teamspace';
 import { ClusterService } from 'src/app/_services/cluster.service';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
 
 @Component({
     selector: 'app-add-local-cluster',
@@ -17,7 +17,6 @@ import { ToastComponent } from 'src/app/components/toast/toast.component';
 })
 export class AddLocalClusterComponent {
     isEditMode: boolean = false;
-    @ViewChild(ToastComponent) toastComponent!: ToastComponent;
     clusterForm: FormGroup;
     submitted: boolean = false;
     addLoading: boolean = false;
@@ -33,6 +32,7 @@ export class AddLocalClusterComponent {
         private clusterService: ClusterService,
         private location: Location,
         private teamspaceService: TeamspaceService,
+        private messageService: MessageService,
     ) {
         this.clusterForm = new FormGroup({});
         this.cluster = {
@@ -82,9 +82,7 @@ export class AddLocalClusterComponent {
                         }
                     },
                     error: (error) => {
-                        this.toastComponent.message = "Cluster not found";
-                        this.toastComponent.toastType = 'info';
-                        this.triggerToast();
+                        this.messageService.add({ severity: 'info', summary: 'Cluster not found', detail: ' ' });
                         this.router.navigateByUrl('clusters');
                     }
                 });
@@ -92,10 +90,6 @@ export class AddLocalClusterComponent {
     }
 
     get formControls() { return this.clusterForm.controls; }
-
-    triggerToast(): void {
-        this.toastComponent.showToast();
-    }
 
     onSubmit() {
         this.submitted = true;
@@ -123,21 +117,15 @@ export class AddLocalClusterComponent {
                 // .pipe(first())
                 .subscribe({
                     next: (resp: any) => {
-                        this.toastComponent.message = resp.message || "Cluster edited successfully";
-                        this.toastComponent.toastType = 'success';
-                        this.triggerToast();
-                        this.router.navigateByUrl('clusters')
+                        this.messageService.add({ severity: 'info', summary: resp.message || "Cluster edited successfully", detail: ' ' });
+                        timer(500).subscribe(() => {
+                            this.router.navigateByUrl('clusters')
+                        });
                     },
                     error: (error) => {
-                        this.toastComponent.message = error.error.message || "Error editing cluster";
-                        this.toastComponent.toastType = 'danger';
-                        if (error.status == 0) {
-                            this.toastComponent.message = "Server is not available";
-                            this.toastComponent.toastType = 'info';
-                        }
-                        this.triggerToast();
-                        this.addLoading = false;
-                        console.error("Error adding cluster :" + error.error.message);
+                        this.messageService.add({ severity: 'error', summary: "Edit failed", detail: error.error.message || "Error editing cluster" });
+                        this.editLoading = false;
+                        console.error("Error adding cluster :", error.error.message);
                     }
                 })
         } else {
@@ -146,21 +134,15 @@ export class AddLocalClusterComponent {
                 .pipe(first())
                 .subscribe({
                     next: (resp) => {
-                        this.toastComponent.message = resp.message || "Cluster added successfully";
-                        this.toastComponent.toastType = 'success';
-                        this.triggerToast();
-                        this.router.navigateByUrl('clusters')
+                        this.messageService.add({ severity: 'success', summary: resp.message || "Cluster added successfully", detail: ' ' });
+                        timer(500).subscribe(() => {
+                            this.router.navigateByUrl('clusters')
+                        });
                     },
                     error: (error) => {
-                        this.toastComponent.message = error.error.message || "Error adding cluster";
-                        this.toastComponent.toastType = 'danger';
-                        if (error.status == 0) {
-                            this.toastComponent.message = "Server is not available";
-                            this.toastComponent.toastType = 'info';
-                        }
-                        this.triggerToast();
-                        this.editLoading = false;
-                        console.error("Error adding cluster :" + error.error.message);
+                        this.messageService.add({ severity: 'error', summary: "Creation failed", detail: error.error.message || "Error adding cluster" });
+                        this.addLoading = false;
+                        console.error("Error adding cluster :", error.error.message);
                     }
                 })
         }
@@ -174,21 +156,15 @@ export class AddLocalClusterComponent {
                 .pipe(first())
                 .subscribe({
                     next: (resp: any) => {
-                        this.toastComponent.message = "Cluster deleted successfully";
-                        this.toastComponent.toastType = 'success';
-                        this.triggerToast();
-                        this.router.navigateByUrl('clusters')
+                        this.messageService.add({ severity: 'info', summary: "Cluster deleted successfully", detail: "" });
+                        timer(500).subscribe(() => {
+                            this.router.navigateByUrl('clusters')
+                        });
                     },
                     error: (error) => {
-                        this.toastComponent.message = error.error.message || "Error deleting cluster";
-                        this.toastComponent.toastType = 'danger';
-                        if (error.status == 0) {
-                            this.toastComponent.message = "Server is not available";
-                            this.toastComponent.toastType = 'info';
-                        }
-                        this.triggerToast();
+                        this.messageService.add({ severity: 'error', summary: "Deletion failed", detail: error.error.message || "Error deleting cluster" });
                         this.revokeLoading = false;
-                        console.error("Error deleting cluster :" + error.error.message);
+                        console.error("Error deleting cluster :", error.error.message);
                     }
                 })
         }

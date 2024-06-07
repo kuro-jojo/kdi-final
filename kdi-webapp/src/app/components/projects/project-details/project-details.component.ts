@@ -1,5 +1,4 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { Environment } from 'src/app/_interfaces/environment';
 import { MatPaginator } from '@angular/material/paginator';
@@ -15,6 +14,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ReloadComponent } from 'src/app/component.util';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
 import { Teamspace } from 'src/app/_interfaces/teamspace';
+import { MessageService } from 'primeng/api';
 
 @Component({
     selector: 'app-project-details',
@@ -22,8 +22,6 @@ import { Teamspace } from 'src/app/_interfaces/teamspace';
     styleUrl: './project-details.component.css'
 })
 export class ProjectDetailsComponent {
-
-    @ViewChild(ToastComponent) toastComponent!: ToastComponent;
     @ViewChild('closeModal') closeModal!: ElementRef;
     displayedColumns: string[] = ['Name', 'Description', 'ClusterID', 'actions'];
     dataSource: MatTableDataSource<Environment> = new MatTableDataSource<Environment>();
@@ -48,7 +46,6 @@ export class ProjectDetailsComponent {
     projectId: string = '';
     cluster!: { "cluster": Cluster };
     teamspace!: { "teamspace": Teamspace };
-    //environments: Environment[] = [];
 
     constructor(private route: ActivatedRoute,
         private router: Router,
@@ -56,8 +53,13 @@ export class ProjectDetailsComponent {
         private teamspaceService: TeamspaceService,
         private projectService: ProjectService,
         private clusterService: ClusterService,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private messageService: MessageService,
     ) {
+    }
+
+    onEnvClick(id: string) {
+        this.router.navigate(['environments/' + id]);
     }
 
     ngOnInit() {
@@ -91,6 +93,7 @@ export class ProjectDetailsComponent {
                     }
                 },
                 error: (error: HttpErrorResponse) => {
+                    this.messageService.add({ severity: 'info', summary: "Failed to fetch project. Please try again later." });
                     console.error("Error loading project: ", error.error.message);
                 }
             });
@@ -120,10 +123,8 @@ export class ProjectDetailsComponent {
 
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.toastComponent.message = "Failed to fetch environments. Please try again later.";
-                    this.toastComponent.toastType = 'info';
-                    this.triggerToast();
-                    console.log(error);
+                    this.messageService.add({ severity: 'info', summary: "Failed to fetch environments. Please try again later." });
+                    console.log("Error loading environments: ", error);
                 }
             });
 
@@ -141,9 +142,6 @@ export class ProjectDetailsComponent {
                 this.reloadPage();
             });
         }
-    }
-    triggerToast(): void {
-        this.toastComponent.showToast();
     }
 
     confirmUpdate(): void {

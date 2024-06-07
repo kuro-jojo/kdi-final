@@ -5,7 +5,6 @@ import { Teamspace } from 'src/app/_interfaces/teamspace';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Project } from 'src/app/_interfaces/project';
 import { UserService } from 'src/app/_services';
-import { ToastComponent } from 'src/app/components/toast/toast.component';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -16,6 +15,7 @@ import { User } from 'src/app/_interfaces';
 import { Profile } from 'src/app/_interfaces/profile';
 import { ProfileService } from 'src/app/_services/profile.service';
 import { ReloadComponent } from 'src/app/component.util';
+import { MessageService } from 'primeng/api';
 
 
 
@@ -25,8 +25,6 @@ import { ReloadComponent } from 'src/app/component.util';
     styleUrl: './view-teamspace.component.css'
 })
 export class ViewTeamspaceComponent {
-
-    @ViewChild(ToastComponent) toastComponent!: ToastComponent;
     displayedColumns: string[] = ['Name', 'Description', 'CreatedAt', 'CreatorID'];
     dataSource: MatTableDataSource<Project> = new MatTableDataSource<Project>();
     @ViewChild(MatPaginator)
@@ -57,7 +55,9 @@ export class ViewTeamspaceComponent {
         private teamService: TeamspaceService,
         private userService: UserService,
         private projectService: ProjectService,
-        private profileService: ProfileService) {
+        private profileService: ProfileService,
+        private messageService: MessageService,
+    ) {
         this.projectForm = new FormGroup({});
     }
 
@@ -89,13 +89,7 @@ export class ViewTeamspaceComponent {
                     this.teamspace = resp.teamspace;
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.toastComponent.message = "Failed to fetch the teamspace. Please try again later.";
-                    this.toastComponent.toastType = 'danger';
-                    if (error.status == 0) {
-                        this.toastComponent.message = "Server is not available! Please try again later.";
-                        this.toastComponent.toastType = 'info';
-                    }
-                    this.triggerToast();
+                    this.messageService.add({ severity: 'error', summary: "Failed to fetch teamspace. Please try again later." });
                     console.error("Error loading teamspace: ", error);
                 }
             });
@@ -117,7 +111,8 @@ export class ViewTeamspaceComponent {
                                     this.dataSource.data[i].CreatorID = this.user.user.Name;
                                 },
                                 error: (error: HttpErrorResponse) => {
-                                    console.error("Error loading user: ", error.error.message);
+                                    this.messageService.add({ severity: 'error', summary: "Error loading user info", detail: error.error.message || "Failed to load user info. Please try again later." });
+                                    console.error("Error loading user info: ", error);
                                 }
                             }
 
@@ -126,13 +121,8 @@ export class ViewTeamspaceComponent {
 
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.toastComponent.message = "Failed to fetch projects. Please try again later.";
-                    this.toastComponent.toastType = 'info';
-                    this.triggerToast();
-                    console.log(error);
-                },
-                complete: () => {
-                    //console.log("projects loaded successfully");
+                    this.messageService.add({ severity: 'error', summary: "Failed to fetch projects. Please try again later." });
+                    console.error("Error loading projects: ", error);
                 }
             });
 
@@ -146,54 +136,31 @@ export class ViewTeamspaceComponent {
         }
 
         this.projectForm.value.teamspace_id = this.teamId;
-
-        if (this.userService.isAuthentificated) {
-
-            this.projectService.createProject(this.projectForm.value)
-                .pipe(first())
-                .subscribe({
-                    next: (resp) => {
-                        this.toastComponent.message = "You have successfully created a project!";
-                        this.toastComponent.toastType = 'success';
-                        this.triggerToast();
-
-                        location.reload();
-                    },
-                    error: (error: HttpErrorResponse) => {
-                        this.toastComponent.message = error.error.message;
-                        this.toastComponent.toastType = 'danger';
-                        this.triggerToast();
-
-                        console.error("Project creation error :" + error.error.message);
-                    }
-                })
-        } else {
-            this.toastComponent.message = 'Token invalide';
-            this.toastComponent.toastType = 'danger';
-        }
+        this.projectService.createProject(this.projectForm.value)
+            .pipe(first())
+            .subscribe({
+                next: (resp) => {
+                    this.messageService.add({ severity: 'success', summary: "You have successfully created a project!" });
+                    location.reload();
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.messageService.add({ severity: 'error', summary: error.error.message });
+                    console.error("Project creation error :", error.error.message);
+                }
+            })
     }
+
     getProfiles() {
         this.profileService.getProfiles().subscribe({
             next: (resp) => {
                 this.profiles = resp.profiles;
             },
             error: (error: HttpErrorResponse) => {
-                this.toastComponent.message = "Failed to fetch profiles. Please try again later.";
-                this.toastComponent.toastType = 'danger';
-                if (error.status == 0) {
-                    this.toastComponent.message = "Server is not available! Please try again later.";
-                    this.toastComponent.toastType = 'info';
-                }
-                this.triggerToast();
+                this.messageService.add({ severity: 'success', summary: "Failed to fetch profiles. Please try again later." });
+                console.log("Error loading profiles: ", error);
             }
         });
     }
-
-
-    triggerToast(): void {
-        this.toastComponent.showToast();
-    }
-
 
     showMemberEditModal(event: any) {
         const element = event.target.parentElement;
@@ -214,9 +181,7 @@ export class ViewTeamspaceComponent {
         this.teamService.addMember(this.teamId, this.memberEmail.value, this.memberProfile.value.ID)
             .subscribe({
                 next: () => {
-                    this.toastComponent.message = "Member added successfully";
-                    this.toastComponent.toastType = 'success';
-                    this.triggerToast();
+                    this.messageService.add({ severity: 'success', summary: "Member added successfully" });
                     this.memberEmail.reset();
                     this.memberProfile.reset();
                     this.addMemberFormSubmitted = false;
@@ -225,14 +190,8 @@ export class ViewTeamspaceComponent {
                     this.loading = false;
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.toastComponent.message = error.error.message || "Failed to add member";
-                    this.toastComponent.toastType = 'danger';
-                    if (error.status == 0) {
-                        this.toastComponent.message = "Server is not available! Please try again later.";
-                        this.toastComponent.toastType = 'info';
-                    }
+                    this.messageService.add({ severity: 'error', summary: error.error.message || "Failed to add member" });
                     this.loading = false;
-                    this.triggerToast();
                 }
             });
     }
@@ -249,23 +208,15 @@ export class ViewTeamspaceComponent {
         this.teamService.updateMember(this.teamId, memberId.textContent, this.memberProfile.value.ID)
             .subscribe({
                 next: () => {
-                    this.toastComponent.message = "Member updated successfully";
-                    this.toastComponent.toastType = 'success';
-                    this.triggerToast();
+                    this.messageService.add({ severity: 'success', summary: "Member updated successfully" });
                     this.editMemberFormSubmitted = false;
                     this.closeModal.nativeElement.click();
                     this.loadTeamDetails();
                     this.loading = false;
                 },
                 error: (error: HttpErrorResponse) => {
-                    this.toastComponent.message = error.error.message || "Failed to update member";
-                    this.toastComponent.toastType = 'danger';
-                    if (error.status == 0) {
-                        this.toastComponent.message = "Server is not available! Please try again later.";
-                        this.toastComponent.toastType = 'info';
-                    }
+                    this.messageService.add({ severity: 'error', summary: error.error.message || "Failed to update member" });
                     this.loading = false;
-                    this.triggerToast();
                 }
             });
     }
@@ -282,23 +233,15 @@ export class ViewTeamspaceComponent {
             this.teamService.removeMember(this.teamId, memberId.textContent)
                 .subscribe({
                     next: () => {
-                        this.toastComponent.message = "Member removed successfully";
-                        this.toastComponent.toastType = 'success';
-                        this.triggerToast();
+                        this.messageService.add({ severity: 'success', summary: "Member removed successfully" });
                         this.addMemberFormSubmitted = false;
                         this.closeModal.nativeElement.click();
                         this.reloadPage();
                         this.loading = false;
                     },
                     error: (error: HttpErrorResponse) => {
-                        this.toastComponent.message = error.error.message || "Failed to remove member";
-                        this.toastComponent.toastType = 'danger';
-                        if (error.status == 0) {
-                            this.toastComponent.message = "Server is not available! Please try again later.";
-                            this.toastComponent.toastType = 'info';
-                        }
+                        this.messageService.add({ severity: 'error', summary: error.error.message || "Failed to remove member" });
                         this.loading = false;
-                        this.triggerToast();
                     }
                 });
         }
@@ -311,3 +254,4 @@ export class ViewTeamspaceComponent {
 
 
 }
+

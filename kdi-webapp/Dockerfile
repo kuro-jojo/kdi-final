@@ -35,7 +35,7 @@ RUN  /bin/bash -c "source /set-env.sh && npm run build --configuration=productio
 # Stage 2: Serve app with nginx server
 
 # Use official nginx image as the base image
-FROM nginx:latest
+FROM nginxinc/nginx-unprivileged
 
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 

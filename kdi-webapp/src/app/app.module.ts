@@ -28,7 +28,6 @@ import { HomeComponent } from 'src/app/components/home/home.component';
 import { LoginComponent } from 'src/app/components/login/login.component';
 import { RegisterComponent } from 'src/app/components/register/register.component';
 import { SignInMicrosoftComponent } from './components/sign-in-microsoft/sign-in-microsoft.component';
-import { ToastComponent } from './components/toast/toast.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 
@@ -45,6 +44,7 @@ import { ProjectDetailsComponent } from './components/projects/project-details/p
 import { ListProjectsComponent } from './components/projects/list-projects/list-projects.component';
 import { DeploymentWithHelmComponent } from './components/deployment-with-helm/deployment-with-helm.component';
 import { CreateEnvironmentComponent } from './components/environments/create-environment/create-environment.component';
+import { EnvironmentDetailsComponent } from './components/environments/create-environment/environment-details/environment-details.component';
 
 import { AddMicroserviceYamlComponent } from './components/microservices/add-microservice-yaml/add-microservice-yaml.component';
 
@@ -56,6 +56,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { RippleModule } from 'primeng/ripple';
+import { ErrorCatchingInterceptor } from './error-catching.interceptor';
 
 export function initializeMsal(msalService: MsalService): () => Promise<void> {
     return () => msalService.instance.initialize();
@@ -69,7 +70,6 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         RegisterComponent,
         SignInMicrosoftComponent,
         HomeComponent,
-        ToastComponent,
         NavbarComponent,
         SidebarComponent,
         CreateTeamspaceComponent,
@@ -83,7 +83,9 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         DeploymentWithHelmComponent,
         CreateEnvironmentComponent,
         ProjectDetailsComponent,
-        AddMicroserviceYamlComponent
+        AddMicroserviceYamlComponent,
+        ProjectDetailsComponent,
+        EnvironmentDetailsComponent
     ],
     imports: [
         ReactiveFormsModule,
@@ -120,6 +122,11 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         {
             provide: HTTP_INTERCEPTORS,
             useClass: AuthInterceptor,
+            multi: true
+        },
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: ErrorCatchingInterceptor,
             multi: true
         },
         {

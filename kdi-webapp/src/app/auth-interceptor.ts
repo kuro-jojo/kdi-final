@@ -29,7 +29,7 @@ export class AuthInterceptor implements HttpInterceptor {
                     this.userService.token = tokenResponse.accessToken;
                 },
                 error: (error) => {
-                    console.error("Error while acquiring token: " + error);
+                    console.error("Error while acquiring token: ", error);
                 }
             });
 
