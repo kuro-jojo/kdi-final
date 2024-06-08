@@ -41,6 +41,6 @@ COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy the build output to replace the default nginx contents.
 COPY --from=build /usr/local/app/dist/kdi-webapp /usr/share/nginx/html
-
-# Expose port 80
-EXPOSE 80
+RUN usermod -u 1001 nginx && chown -R 1001:0 /var/cache/nginx 
+    # Expose port 80
+EXPOSE 8080
