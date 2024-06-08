@@ -17,7 +17,7 @@ import (
 const (
 	NameForFilesForm = "files"
 	// TODO: Change this for production
-	KubernetesApiUrl = "http://localhost:8080/api/v1/kubernetes"
+	KubernetesApiUrl = "http://localhost:8090/api/v1/kubernetes"
 )
 
 type K8sApiHttpResponse struct {

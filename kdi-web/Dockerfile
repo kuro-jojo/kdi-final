@@ -14,6 +14,6 @@ ENV KDI_WORKING_ENV=prod
 
 RUN CGO_ENABLED=1 GOOS=linux go build -o kdi-web .
 
-EXPOSE 8080
+EXPOSE 8070
 
 CMD ["./kdi-web"]

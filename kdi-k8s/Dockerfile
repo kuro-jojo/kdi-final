@@ -14,6 +14,6 @@ ENV KDI_WORKING_ENV=prod
 
 RUN CGO_ENABLED=1 GOOS=linux go build -o kdi-k8s .
 
-EXPOSE 8080
+EXPOSE 8090
 
 CMD ["./kdi-k8s"]
