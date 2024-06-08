@@ -41,7 +41,7 @@ spec:
 
           env:
             - name: KDI_WEB_API_PORT
-              value: {{ .Values.service.port }}
+              value: "{{ .Values.service.port }}"
             - name: KDI_WEBAPP_ENDPOINT
               valueFrom:
                 secretKeyRef:
