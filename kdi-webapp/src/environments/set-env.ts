@@ -12,7 +12,7 @@ const setEnv = () => {
     // `environment.ts` file structure
     const envConfigFile = `export const environment = {
     production: true,
-    apiUrl: 'http://kdi-web.kuro08-dev.svc.cluster.local:8070/api/v1',
+    apiUrl: 'https://kdi-web-kuro08-dev.apps.sandbox-m3.1530.p1.openshiftapps.com/api/v1',
     clientId: '${process.env["KDI_WEBAPP_MSAL_CLIENT_ID"]}',
     redirectUri: '${process.env["KDI_WEBAPP_MSAL_REDIRECT_URI"]}',
     authority: '${process.env["KDI_WEBAPP_MSAL_AUTHORITY"]}',
