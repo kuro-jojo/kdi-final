@@ -58,10 +58,7 @@ a:hover {
 
 h1,
 h2,
-h3,
-h4,
-h5,
-h6 {
+h5 {
   font-family: "Nunito", sans-serif;
 }
 /* Breadcrumbs */
@@ -90,10 +87,6 @@ h6 {
   font-weight: 600;
 }
 
-.btn-primary {
-  margin-right: 10px;
-}
-
 .cluster-type-img {
   width: 100px;
   height: 100px;
@@ -104,9 +97,9 @@ h6 {
   box-shadow: 1px 8px 20px grey;
   padding: 0 !important;
 }
-.cluster-type{
-    transition: box-shadow 0.5s;
+.cluster-type {
+  transition: box-shadow 0.5s;
 }
-.card-text{
-    text-align: center;
+.card-text {
+  text-align: center;
 }

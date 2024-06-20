@@ -21,13 +21,6 @@
 .card-body {
   padding: 0 20px 20px 20px;
 }
-.card-title {
-  padding: 20px 0 15px 0;
-  font-size: 18px;
-  font-weight: 500;
-  color: #012970;
-  font-family: "Poppins", sans-serif;
-}
 
 body {
   font-family: "Open Sans", sans-serif;
@@ -57,11 +50,7 @@ a:hover {
 }
 
 h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h2 {
   font-family: "Nunito", sans-serif;
 }
 /* Breadcrumbs */
@@ -88,24 +77,6 @@ h6 {
 .breadcrumb .active {
   color: #51678f;
   font-weight: 600;
-}
-
-.btn-primary {
-  margin-right: 10px;
-}
-
-.cluster-type-img {
-  width: 100px;
-  height: 100px;
-  margin: auto;
-}
-.cluster-type:hover {
-  cursor: pointer;
-  box-shadow: 1px 8px 20px grey;
-  padding: 0 !important;
-}
-.cluster-type {
-  transition: box-shadow 0.5s;
 }
 
 .btn-outline-success {

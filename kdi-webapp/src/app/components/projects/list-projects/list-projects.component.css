@@ -1,99 +1,92 @@
 #main {
-    margin-top: 60px;
-    padding: 20px 30px;
-    transition: all 0.3s;
-  }
-  
-  @media (max-width: 1199px) {
-    #main {
-      padding: 20px;
-    }
-  }
+  margin-top: 60px;
+  padding: 20px 30px;
+  transition: all 0.3s;
+}
 
-  /* Card */
-.card {
-    margin-bottom: 30px;
-    border: none;
-    border-radius: 5px;
-    box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+@media (max-width: 1199px) {
+  #main {
+    padding: 20px;
   }
+}
+
+/* Card */
+.card {
+  margin-bottom: 30px;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+}
 
 .card-body {
-    padding: 0 20px 20px 20px;
+  padding: 0 20px 20px 20px;
 }
 .card-title {
-    padding: 20px 0 15px 0;
-    font-size: 18px;
-    font-weight: 500;
-    color: #012970;
-    font-family: "Poppins", sans-serif;
-  }
+  padding: 20px 0 15px 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #012970;
+  font-family: "Poppins", sans-serif;
+}
 
 body {
-    font-family: "Open Sans", sans-serif;
-    background: #f6f9ff;
-    color: #c2b8b8;
+  font-family: "Open Sans", sans-serif;
+  background: #f6f9ff;
+  color: #c2b8b8;
 }
 
 .pagetitle {
-    margin-bottom: 30px;
+  margin-bottom: 30px;
 }
-  
+
 .pagetitle h1 {
-    font-size: 24px;
-    margin-bottom: 0;
-    font-weight: 600;
-    color: #012970;
+  font-size: 24px;
+  margin-bottom: 0;
+  font-weight: 600;
+  color: #012970;
 }
 
 a {
-    color: #4154f1;
-    text-decoration: none;
+  color: #4154f1;
+  text-decoration: none;
 }
-  
+
 a:hover {
-    color: #717ff5;
-    text-decoration: none;
-  }
-  
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: "Nunito", sans-serif;
-  }
-  /* Breadcrumbs */
-  .breadcrumb {
-    font-size: 14px;
-    font-family: "Nunito", sans-serif;
-    color: #899bbd;
-    font-weight: 600;
-  }
-  
-  .breadcrumb a {
-    color: #899bbd;
-    transition: 0.3s;
-  }
-  
-  .breadcrumb a:hover {
-    color: #51678f;
-  }
-  
-  .breadcrumb .breadcrumb-item::before {
-    color: #899bbd;
-  }
-  
-  .breadcrumb .active {
-    color: #51678f;
-    font-weight: 600;
-  }
+  color: #717ff5;
+  text-decoration: none;
+}
 
-  .btn-outline-primary{
-    margin-right: 10px;
-    margin-left: 10px;
-  }
+h1,
+h5 {
+  font-family: "Nunito", sans-serif;
+}
+/* Breadcrumbs */
+.breadcrumb {
+  font-size: 14px;
+  font-family: "Nunito", sans-serif;
+  color: #899bbd;
+  font-weight: 600;
+}
 
-  
-  
+.breadcrumb a {
+  color: #899bbd;
+  transition: 0.3s;
+}
+
+.breadcrumb a:hover {
+  color: #51678f;
+}
+
+.breadcrumb .breadcrumb-item::before {
+  color: #899bbd;
+}
+
+.breadcrumb .active {
+  color: #51678f;
+  font-weight: 600;
+}
+
+.btn-outline-primary {
+  margin-right: 10px;
+  margin-left: 10px;
+}
