@@ -3,12 +3,12 @@ entries:
   kdi-web:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-06-08T12:54:13.584579219Z"
+    created: "2024-06-20T21:13:17.394729818Z"
     description: A Helm chart for Kubernetes
-    digest: d36fe403d0259349dcea69009dbb042698efffd0a6864edd22168a762f2072a2
+    digest: 997aa935bd5791d59099c5409ae9d312264e0ce618706b9d09943b0a93b0f39f
     name: kdi-web
     type: application
     urls:
     - kdi-web-0.1.0.tgz
     version: 0.1.0
-generated: "2024-06-08T12:54:13.584242406Z"
+generated: "2024-06-20T21:13:17.394349473Z"
