@@ -20,6 +20,7 @@ const setEnv = () => {
     };
     `;
     console.log(colors.magenta('The file `environment.ts` will be written with the following content: \n'));
+    console.log(colors.magenta('KDI_WEBAPP_WEP_API_ENDPOINT: ', process.env["KDI_WEBAPP_WEP_API_ENDPOINT"]));
     writeFile(targetPath, envConfigFile, (err: any) => {
         if (err) {
             console.error(err);
