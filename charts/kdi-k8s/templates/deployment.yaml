@@ -41,11 +41,8 @@ spec:
           
           env:
             - name: KDI_K8S_API_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "kdi-k8s.fullname" . }}
-                  key: KDI_K8S_API_PORT
-            
+              value: "{{ .Values.service.port }}"
+
             - name: KDI_WEB_API_ENDPOINT
               valueFrom:
                 secretKeyRef:
