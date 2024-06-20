@@ -5,14 +5,13 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
-import { first } from 'rxjs';
+import { first, timer } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Project } from 'src/app/_interfaces/project';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
 import { Teamspace } from 'src/app/_interfaces/teamspace';
 import { User } from 'src/app/_interfaces';
 import { ReloadComponent } from 'src/app/component.util';
-import { ServerService } from 'src/app/_services/server.service';
 import { MessageService } from 'primeng/api';
 
 
@@ -45,7 +44,6 @@ export class ListProjectsComponent {
         private projectService: ProjectService,
         private teamspaceService: TeamspaceService,
         private userService: UserService,
-        private serverService: ServerService,
         private messageService: MessageService,
     ) {
     }
@@ -55,14 +53,8 @@ export class ListProjectsComponent {
     }
 
     ngOnInit() {
-        this.serverService.serverStatus()
-            .subscribe({
-                next: () => {
-                    this.getOwnedProjects();
-                    this.getJoinedProjects();
-                },
-            });
-
+        this.getOwnedProjects();
+        this.getJoinedProjects();
     }
 
     private getJoinedProjects() {
@@ -93,10 +85,10 @@ export class ListProjectsComponent {
                             {
                                 next: (resp) => {
                                     this.user = resp;
-                                    this.dataSourceforJoined.data[i].CreatorID = resp.user;
+                                    this.dataSourceforJoined.data[i].Owner = resp.user;
                                 },
                                 error: (error: HttpErrorResponse) => {
-                                    console.error("Error loading user: ", error.error.message);
+                                    console.error("Error loading user: ", error.error.message, this.dataSourceforJoined.data[i].CreatorID);
                                 }
                             }
 
@@ -148,10 +140,18 @@ export class ListProjectsComponent {
 
     deleteProject(projectId: string): void {
         if (confirm('Are you sure you want to delete this project?')) {
-            this.projectService.deleteProject(projectId).subscribe(() => {
-                this.messageService.add({ severity: 'info', summary: "Project deleted successfully!" });
-                // Rechargement de la liste des projets après la suppression
-                this.reloadPage();
+            this.projectService.deleteProject(projectId).subscribe({
+                next: () => {
+                    console.log("Project deleted successfully!");
+                    this.messageService.add({ severity: 'info', summary: "Project deleted successfully!" });
+                    // Rechargement de la liste des projets après la suppression
+                    timer(1000).subscribe(() => {
+                        this.reloadPage();
+                    });
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.messageService.add({ severity: 'error', summary: error.error.message });
+                }
             });
         }
     }

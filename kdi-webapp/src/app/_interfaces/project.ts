@@ -5,4 +5,5 @@ export interface Project {
     CreatedAt: Date;
     CreatorID: string;
     TeamspaceID: string;
+    Owner?: string;
 }

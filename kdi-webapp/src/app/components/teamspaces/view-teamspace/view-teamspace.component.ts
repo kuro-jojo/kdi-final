@@ -11,13 +11,10 @@ import { MatSort } from '@angular/material/sort';
 import { ProjectService } from 'src/app/_services/project.service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs';
-import { User } from 'src/app/_interfaces';
 import { Profile } from 'src/app/_interfaces/profile';
 import { ProfileService } from 'src/app/_services/profile.service';
 import { ReloadComponent } from 'src/app/component.util';
 import { MessageService } from 'primeng/api';
-
-
 
 @Component({
     selector: 'app-view-teamspace',
@@ -40,7 +37,6 @@ export class ViewTeamspaceComponent {
     projects: Project[] = [];
     projectForm: FormGroup;
     submitted = false;
-    user!: { "user": User };
     memberEmail: FormControl = new FormControl('', [Validators.required, Validators.email]);
     memberProfile: FormControl = new FormControl('', Validators.required);
     profiles!: Profile[]
@@ -104,19 +100,22 @@ export class ViewTeamspaceComponent {
                     this.dataSource.sort = this.sort;
 
                     for (let i = 0; i <= this.dataSource.data.length - 1; i++) {
-                        this.userService.getUserById(this.dataSource.data[i].CreatorID).subscribe(
-                            {
-                                next: (resp) => {
-                                    this.user = resp;
-                                    this.dataSource.data[i].CreatorID = this.user.user.Name;
-                                },
-                                error: (error: HttpErrorResponse) => {
-                                    this.messageService.add({ severity: 'error', summary: "Error loading user info", detail: error.error.message || "Failed to load user info. Please try again later." });
-                                    console.error("Error loading user info: ", error);
+                        if (this.dataSource.data[i].CreatorID) {
+                            this.userService.getUserById(this.dataSource.data[i].CreatorID).subscribe(
+                                {
+                                    next: (resp) => {
+                                        this.dataSource.data[i].Owner = resp.user;
+                                    },
+                                    error: (error: HttpErrorResponse) => {
+                                        this.messageService.add({ severity: 'error', summary: "Error loading user info", detail: error.error.message || "Failed to load user info. Please try again later." });
+                                        console.error("Error loading user info: ", error);
+                                    }
                                 }
-                            }
 
-                        )
+                            )
+                        } else {
+                            this.dataSource.data[i].Owner = "Unknown";
+                        }
                     }
 
                 },

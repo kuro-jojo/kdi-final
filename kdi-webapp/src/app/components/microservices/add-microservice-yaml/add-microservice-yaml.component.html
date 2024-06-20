@@ -31,7 +31,7 @@
                         <p>Drag and drop files to here to upload.</p>
                         <ng-template pTemplate="content">
                             <div
-                                *ngIf="messages && ((messages.error && messages.error.length) || (messages.success && messages.success.length) ||(messages.info && messages.info.length))">
+                                *ngIf="messages && ((messages.error && messages.error) || (messages.success && messages.success) ||(messages.info && messages.info))">
                                 <p class="fw-bold fs-4 m-3">Deployments summary</p>
                                 <div *ngFor="let message of messages.success"
                                     class="text-success-emphasis p-2 text-start">

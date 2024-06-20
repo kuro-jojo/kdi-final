@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { MsalInterceptor, MsalService } from '@azure/msal-angular';
+import { MsalService } from '@azure/msal-angular';
 import { UserService } from './_services';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';

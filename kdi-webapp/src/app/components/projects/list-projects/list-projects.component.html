@@ -26,7 +26,6 @@
                 </div>
 
                 <div class="card">
-                    <p-toast />
                     <div class="card-body">
                         <h5 class="card-title">My projects</h5>
 
@@ -95,7 +94,6 @@
                 </div>
 
                 <div class="card">
-                    <p-toast />
                     <div class="card-body">
                         <h5 class="card-title">Projects Of Joined teamspaces</h5>
 
@@ -144,7 +142,7 @@
                                     Owner
                                 </th>
                                 <td mat-cell *matCellDef="let element" class="fw-medium"
-                                    (click)="onProjectClick(element.ID)"> {{element.CreatorID}} </td>
+                                    (click)="onProjectClick(element.ID)"> {{element.Owner}} </td>
                             </ng-container>
 
 

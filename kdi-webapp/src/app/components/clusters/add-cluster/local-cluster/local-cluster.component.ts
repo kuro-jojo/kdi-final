@@ -47,7 +47,6 @@ export class AddLocalClusterComponent {
 
     ngOnInit() {
         let getTeamspacePromise = this.getTeamspaces();
-
         this.cluster.ID = this.route.snapshot.params['id'];
         this.isEditMode = !!this.cluster.ID;
 
@@ -118,7 +117,7 @@ export class AddLocalClusterComponent {
                 .subscribe({
                     next: (resp: any) => {
                         this.messageService.add({ severity: 'info', summary: resp.message || "Cluster edited successfully", detail: ' ' });
-                        timer(500).subscribe(() => {
+                        timer(1000).subscribe(() => {
                             this.router.navigateByUrl('clusters')
                         });
                     },
@@ -135,7 +134,7 @@ export class AddLocalClusterComponent {
                 .subscribe({
                     next: (resp) => {
                         this.messageService.add({ severity: 'success', summary: resp.message || "Cluster added successfully", detail: ' ' });
-                        timer(500).subscribe(() => {
+                        timer(1000).subscribe(() => {
                             this.router.navigateByUrl('clusters')
                         });
                     },
@@ -157,7 +156,7 @@ export class AddLocalClusterComponent {
                 .subscribe({
                     next: (resp: any) => {
                         this.messageService.add({ severity: 'info', summary: "Cluster deleted successfully", detail: "" });
-                        timer(500).subscribe(() => {
+                        timer(1000).subscribe(() => {
                             this.router.navigateByUrl('clusters')
                         });
                     },

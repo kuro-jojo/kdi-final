@@ -40,6 +40,7 @@ export class CreateEnvironmentComponent {
 
     ngOnInit() {
         this.environment = {
+            ID: '',
             Name: '',
             ClusterID: '',
             ProjectID: ''
@@ -58,20 +59,14 @@ export class CreateEnvironmentComponent {
             this.environmentForm.controls['ProjectID'].disable();
         }
 
-        this.serverService.serverStatus().subscribe({
-            next: (resp) => {
-                this.clusterService.getOwnedClusters().subscribe(
-                    (resp) => { this.clusters = resp; }
-                )
-                this.projectService.getOwnedProjects().subscribe(
-                    (resp) => { this.projects = resp; }
-                )
-            }, error: () => {
-            }
-        });
-
-
+        this.clusterService.getOwnedClusters().subscribe(
+            (resp) => { this.clusters = resp; }
+        )
+        this.projectService.getOwnedProjects().subscribe(
+            (resp) => { this.projects = resp; }
+        )
     }
+    
     get formControls() { return this.environmentForm.controls; }
 
     onSubmit() {

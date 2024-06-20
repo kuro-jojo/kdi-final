@@ -1,0 +1,321 @@
+<div class="overlay" #overlay>
+    <p-progressSpinner ariaLabel="loading" class="loader" />
+    <p class="loader loader-text text-white">Please wait a moment. We are updating your microservice...</p>
+</div>
+<app-navbar></app-navbar>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <app-sidebar></app-sidebar>
+        </div>
+
+        <div class="col-md-8">
+            <main id="main" class="main">
+                <div class="pagetitle">
+                    <h1 class="microservice">Microservice</h1>
+                    <nav>
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a [routerLink]="['']">Home</a></li>
+                            <li class="breadcrumb-item"><a [routerLink]="['/projects']">Projects</a></li>
+                            <li class="breadcrumb-item"><a [routerLink]="['/projects']">Environments</a></li>
+                            <li class="breadcrumb-item"><a [routerLink]="['/projects']">Microservices</a></li>
+                            <li class="breadcrumb-item active">Details</li>
+                        </ol>
+                    </nav>
+                </div><!-- End Page Title -->
+                <p-messages severity="warn" *ngIf="isClusterTokenExpired">
+                    <ng-template pTemplate>
+                        <i class="bi bi-exclamation-triangle-fill" style="margin-right: 1rem;"></i>
+                        <div class="ml-5">Cluster token has expired. Please re-generate the token.</div>
+                        <a class="btn" [routerLink]="['/clusters/local',cluster.ID, 'edit']">Update</a>
+                    </ng-template>
+                </p-messages>
+                <div class="card" *ngIf="microservice">
+                    <div class="card-header">
+                        <h1 class="card-title">{{ microservice.Name }}</h1>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-end">
+                            <button class="mt-4 mb-4 btn btn-outline-primary" (click)="openModal()"
+                                [disabled]="isClusterTokenExpired" data-bs-toggle="modal"
+                                data-bs-target="#UpdateMicroservice">Update Microservice</button>
+                        </div>
+                        <div class="text-container card-body">
+                            <h5 class="card-title"><i class="date-icon bi bi-calendar-check"></i> <span class="date"> {{
+                                    microservice.DeployedAt | date:'short' }} </span></h5>
+                        </div>
+                        <div class="row informations">
+                            <div class="card col">
+                                <div class="card-body">
+                                    <h5 class="card-title">Namespace <span>| {{ microservice.namespace }}
+                                        </span></h5>
+
+                                    <div class="d-flex align-items-center">
+                                        <div
+                                            class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-cloud-arrow-down"></i>
+                                        </div>
+                                        <div class="ps-3" *ngIf="cluster">
+                                            <h6>{{ cluster.Name }}</h6>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card col">
+                                <div class="card-body">
+                                    <h5 class="card-title">Replicas <span>| {{ microservice.Replicas }}
+                                        </span></h5>
+
+                                    <div class="d-flex align-items-center">
+                                        <div
+                                            class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-copy"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card col">
+                                <div class="card-body">
+                                    <h5 class="card-title">Strategy <span>| {{ microservice.Strategy }}
+                                        </span></h5>
+
+                                    <div class="d-flex align-items-center">
+                                        <div
+                                            class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-arrow-repeat"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col card-body">
+
+                                <h4><i class="container-icon bi bi-box-seam"></i> <span>Containers</span></h4>
+                                <table mat-table [dataSource]="containers" matSort>
+
+                                    <ng-container matColumnDef="Name">
+                                        <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                            sortActionDescription="Sort by name">
+                                            Name
+                                        </th>
+                                        <td mat-cell *matCellDef="let element" class="fw-medium"> {{element.Name}} </td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="Image">
+                                        <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                            sortActionDescription="Sort by description">
+                                            Image
+                                        </th>
+                                        <td mat-cell *matCellDef="let element"
+                                            [ngClass]="{'fst-italic' : !element.Description}"> {{element.Image}} </td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="Port">
+                                        <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                            sortActionDescription="Sort by cluster">
+                                            Port
+                                        </th>
+                                        <td mat-cell *matCellDef="let element">{{ element.Port}} </td>
+                                    </ng-container>
+
+                                    <ng-container matColumnDef="actions">
+                                        <th mat-header-cell *matHeaderCellDef>Actions</th>
+                                        <td mat-cell *matCellDef="let env">
+                                            <button mat-icon-button color="warn" class="btn btn-outline-primary"
+                                                (click)="openModal()" [disabled]="isClusterTokenExpired">
+                                                <mat-icon>Update</mat-icon>
+                                            </button>
+                                            <!--<button mat-icon-button color="warn" class="btn btn-outline-danger">
+                        <mat-icon>delete</mat-icon>
+                    </button>-->
+
+                                        </td>
+                                    </ng-container>
+
+
+                                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                </table>
+
+
+                            </div>
+
+                        </div>
+
+                        <div class="row card-body">
+
+                            <div class="col" *ngIf="microservice.Labels && (microservice.Labels | keyvalue).length > 0">
+                                <h3><i class="container-icon bi bi-tags"></i> <span>Labels</span></h3>
+                                <ul>
+                                    <li *ngFor="let label of microservice.Labels | keyvalue">{{ label.key
+                                        }}: {{ label.value }}</li>
+                                </ul>
+                            </div>
+
+                            <div class="col"
+                                *ngIf="microservice.Selectors && (microservice.Selectors | keyvalue).length > 0">
+                                <h3><i class="container-icon bi bi-check2-circle"></i> <span>Selectors</span></h3>
+                                <ul>
+                                    <li *ngFor="let selector of microservice.Selectors | keyvalue">{{
+                                        selector.key }}: {{ selector.value }}</li>
+                                </ul>
+                            </div>
+
+                        </div>
+
+                        <div class="row card-body">
+                            <div *ngIf="microservice.Conditions && microservice.Conditions.length > 0">
+                                <h3 class="mb-3"><i class="container-icon bi bi-heart-pulse"></i>Microservice Deployment
+                                    History</h3>
+                                <div class="card-body" *ngFor="let index of generateArray(conditionsLength)"
+                                    class="card-conditions mb-3">
+                                    <h5 class="card-title">Step {{ index +1 }}</h5>
+                                    <p class="badge"
+                                        [ngClass]="{'badge-success': microservice.Conditions[index].type === 'Available', 'badge-danger': microservice.Conditions[index].type == 'Progressing'}">
+                                        Type: {{ microservice.Conditions[index].type}}</p>
+                                    <p><span class="gras">Reason:</span> {{
+                                        microservice.Conditions[index].reason }}</p>
+                                    <p><span class="gras">Message:</span> {{
+                                        microservice.Conditions[index].message }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<!-- Update Modal -->
+<div class="modal" tabindex="-1" role="dialog" [class.show]="isModalOpen"
+    [ngStyle]="{'display': isModalOpen ? 'block' : 'none'}" *ngIf="microservice">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex align-items-center justify-content-center w-100">
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+                        <h5 class="modal-title mx-3">Update Microservice</h5>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="updateForm" (ngSubmit)="onSubmit()">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col">
+                                <label class="mb-2" for="strategy">Update Strategy</label>
+                                <select id="strategy" class="form-control mb-3 background" formControlName="strategy"
+                                    [value]="microservice.Strategy" name="strategy" required>
+                                    <option value="RollingUpdate">Rolling Update</option>
+                                    <option value="Recreate">Recreate</option>
+                                    <option value="blue-green">Blue-Green</option>
+                                    <option value="canary">Canary</option>
+                                </select>
+                                <div *ngIf="submitted && formControls['strategy'].errors"
+                                    class="invalid-feedback d-block">
+                                    <div *ngIf="formControls['strategy'].errors['required']">Please enter an updating
+                                        strategy </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="mb-2" for="replicas">Replicas</label>
+                                <input type="number" id="replicas" class="form-control mb-3 background"
+                                    formControlName="replicas" [value]="microservice.Replicas" name="replicas" required>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col">
+                                <label class="mb-2" for="oldImage">Current Image</label>
+                                <input type="text" id="oldImage" class="form-control mb-3 background"
+                                    [value]="microservice.Containers[0].Image" disabled>
+                            </div>
+                            <div class="col">
+                                <label class="mb-2" for="newImage">New Image</label>
+                                <input type="text" id="image" class="form-control mb-3 background"
+                                    formControlName="image" name="image" required>
+                            </div>
+                            <div *ngIf="submitted && formControls['image'].errors" class="invalid-feedback d-block">
+                                <div *ngIf="formControls['image'].errors['required']">Please enter the new image
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Fields specific to Rolling Update strategy -->
+                    <div class="form-group row" *ngIf="isStrategy('RollingUpdate')">
+                        <div class="col mb-3">
+                            <label for="maxUnavailable" class="form-label">Max Unavailable</label>
+                            <input type="text" formControlName="maxUnavailable" id="maxUnavailable"
+                                class="form-control background" name="maxUnavailable">
+                        </div>
+                        <div class="col mb-3">
+                            <label for="maxSurge" class="form-label">Max Surge</label>
+                            <input type="text" id="maxSurge" formControlName="maxSurge" class="form-control background"
+                                name="maxSurge">
+                        </div>
+                    </div>
+
+                    <!-- Fields specific to Canary strategy -->
+                    <div *ngIf="isStrategy('canary')">
+                        <div class="mb-3 form-group">
+                            <label for="canaryWeight" class="form-label">Canary Weight (%)</label>
+                            <input type="number" id="canaryWeight" formControlName="canaryWeight"
+                                class="form-control background" name="canaryWeight">
+                        </div>
+                        <!--<div class="mb-3">
+                <label for="canarySteps" class="form-label">Canary Steps</label>
+                <input type="text" id="canarySteps" class="form-control" [(ngModel)]="updateForm.canarySteps" name="canarySteps">
+              </div>-->
+                        <div class="mb-3">
+                            <label for="canaryAnalysisInterval" class="form-label">Interval (minutes)</label>
+                            <input type="number" id="canaryAnalysisInterval" formControlName="canaryAnalysisInterval"
+                                class="form-control background" name="canaryAnalysisInterval">
+                        </div>
+                        <!--<div class="mb-3">
+                <label for="canaryMetrics" class="form-label">Metrics to Monitor</label>
+                <input type="text" id="canaryMetrics" class="form-control" [(ngModel)]="updateForm.canaryMetrics" name="canaryMetrics">
+              </div>-->
+                        <!--<div class="mb-3">
+                <label for="canaryMaxDuration" class="form-label">Max Duration (minutes)</label>
+                <input type="number" id="canaryMaxDuration" class="form-control" [(ngModel)]="updateForm.canaryMaxDuration" name="canaryMaxDuration">
+              </div>-->
+                    </div>
+                    <button type="button" (click)="openConfirmModal()"
+                        class="btn btn-outline-primary update d-flex justify-content-center">Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Second modal for confirmation -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true"
+    [class.show]="isConfirmModalOpen" [ngStyle]="{'display':isConfirmModalOpen ? 'block' : 'none'}">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content modal-content-centered">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Update</h5>
+                <button type="button" class="btn-close" (click)="closeConfirmModal()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to update the microservice using new image <p> {{updateForm.value.image}}</p> and
+                <p> {{updateForm.value.strategy}}</p> strategy?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeConfirmModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" (click)="onSubmit()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>

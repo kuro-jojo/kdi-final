@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { EnvironmentService } from 'src/app/_services/environment.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Environment } from 'src/app/_interfaces/environment';
 import { ClusterService } from 'src/app/_services/cluster.service';
 import { Cluster } from 'src/app/_interfaces/cluster';
@@ -32,17 +32,19 @@ export class EnvironmentDetailsComponent {
     cluster!: Cluster;
     user!: { "user": User };
     conditions: Conditions = {
-        Type: "",
-        Status: "",
-        Reason: ""
+        type: "",
+        reason: "",
+        message: ""
     }
+
+    clusterTokenExpired: boolean = false;
 
     constructor(
         private route: ActivatedRoute,
         private environmentService: EnvironmentService,
         private clusterService: ClusterService,
         private messageService: MessageService,
-    ) {
+        private router: Router    ) {
     }
 
     ngOnInit() {
@@ -56,6 +58,14 @@ export class EnvironmentDetailsComponent {
         });
     }
 
+    ClickEnv(row: Microservice) {
+        this.router.navigate(['/microservices/' + row.ID]);
+    }
+
+    onEnvClick(id: string) {
+        this.router.navigate(['environments/' + this.envId + '/microservices/' + id]);
+    }
+
     loadEnvironmentDetails() {
         this.environmentService.getEnvironmentDetails(this.envId)
             .subscribe({
@@ -66,6 +76,8 @@ export class EnvironmentDetailsComponent {
                             .subscribe({
                                 next: (resp) => {
                                     this.cluster = resp.cluster;
+                                    this.clusterTokenExpired = this.clusterService.hasExpired(this.cluster);
+                                    console.log(this.clusterTokenExpired);
                                 },
                                 error: (error: HttpErrorResponse) => {
                                     console.error("Error getting cluster: ", error.error.message || error.error);

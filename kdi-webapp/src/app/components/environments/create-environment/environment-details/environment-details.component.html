@@ -22,12 +22,18 @@
                         </ol>
                     </nav>
                 </div><!-- End Page Title -->
-
-
+                <p-messages severity="warn" *ngIf="clusterTokenExpired">
+                    <ng-template pTemplate>
+                        <i class="bi bi-exclamation-triangle-fill" style="margin-right: 1rem;"></i>
+                        <div class="ml-5">Cluster token has expired. Please re-generate the token.</div>
+                        <a class="btn" [routerLink]="['/clusters/local',cluster.ID, 'edit']">Update</a>
+                    </ng-template>
+                </p-messages>
                 <!-- invite someone -->
                 <div class="text-end mb-5">
-                    <button class="btn btn-outline-primary" [routerLink]="['deployments/with-yaml']">New Deployment</button>
-                </div>
+                    <button class="btn btn-outline-primary" [routerLink]="['deployments/with-yaml']" [disabled]="clusterTokenExpired">New
+                        Deployment</button>
+                </div> 
 
                 <div class="card">
                     <p-toast />
@@ -156,8 +162,9 @@
 
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef>Actions</th>
-                                <td mat-cell *matCellDef="let project">
-                                    <button mat-icon-button color="warn" class="btn btn-outline-primary">
+                                <td mat-cell *matCellDef="let element">
+                                    <button (click)="onEnvClick(element.ID)" mat-icon-button color="warn"
+                                        class="btn btn-outline-primary">
                                         <mat-icon>view</mat-icon>
                                     </button>
 
@@ -166,7 +173,7 @@
 
 
                             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                            <tr mat-row (click)="ClickEnv(row)" *matRowDef="let row; columns: displayedColumns;"></tr>
                         </table>
                         <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
                             aria-label="Select page of microservices">

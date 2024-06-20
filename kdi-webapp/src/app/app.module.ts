@@ -57,6 +57,8 @@ import { BadgeModule } from 'primeng/badge';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { RippleModule } from 'primeng/ripple';
 import { ErrorCatchingInterceptor } from './error-catching.interceptor';
+import { CacheInterceptor } from './cache.interceptor';
+import { MicroserviceDetailsComponent } from './components/microservices/microservice-details/microservice-details.component';
 
 export function initializeMsal(msalService: MsalService): () => Promise<void> {
     return () => msalService.instance.initialize();
@@ -85,7 +87,8 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         ProjectDetailsComponent,
         AddMicroserviceYamlComponent,
         ProjectDetailsComponent,
-        EnvironmentDetailsComponent
+        EnvironmentDetailsComponent,
+        MicroserviceDetailsComponent
     ],
     imports: [
         ReactiveFormsModule,
@@ -109,7 +112,8 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         AvatarModule,
         BadgeModule,
         ProgressSpinnerModule,
-        RippleModule
+        RippleModule,
+        MessageModule,
     ],
     schemas: [
         CUSTOM_ELEMENTS_SCHEMA
@@ -127,6 +131,11 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         {
             provide: HTTP_INTERCEPTORS,
             useClass: ErrorCatchingInterceptor,
+            multi: true
+        },
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: CacheInterceptor,
             multi: true
         },
         {

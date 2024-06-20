@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProjectService } from 'src/app/_services/project.service';
 import { Router } from '@angular/router';
-import { first } from 'rxjs';
+import { first, timer } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
 import { Teamspace } from 'src/app/_interfaces/teamspace';
@@ -64,7 +64,10 @@ export class CreateProjectComponent {
             .subscribe({
                 next: (resp) => {
                     this.messageService.add({ severity: 'success', summary: "You have successfully created the project!" });
-                    this.router.navigate(['/projects'])
+                    timer(1000).subscribe(() => {
+                        this.router.navigate(['/projects'])
+                    });
+                    console.log("Project created successfully :", resp);
                 },
                 error: (error: HttpErrorResponse) => {
                     this.messageService.add({ severity: 'error', summary: error.error.message });

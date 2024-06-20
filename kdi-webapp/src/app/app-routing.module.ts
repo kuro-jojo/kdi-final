@@ -25,6 +25,8 @@ import { AddMicroserviceYamlComponent } from './components/microservices/add-mic
 import { ServerDownComponent } from './components/errors/server-down/server-down.component';
 import { PageNotFoundComponent } from './components/errors/page-not-found/page-not-found.component';
 import { EnvironmentDetailsComponent } from './components/environments/create-environment/environment-details/environment-details.component';
+import { MicroserviceDetailsComponent } from './components/microservices/microservice-details/microservice-details.component';
+
 
 
 const routes: Routes = [
@@ -40,6 +42,7 @@ const routes: Routes = [
     { path: "environments/:id/deployments/with-yaml", component: AddMicroserviceYamlComponent, title: "Deploy with helm", canActivate: [AuthGuard] },
     { path: "environments/add", component: CreateEnvironmentComponent, title: "Add new environment", canActivate: [AuthGuard] },
     { path: "environments/:envId", component: EnvironmentDetailsComponent, canActivate: [AuthGuard], title: "Environment details" },
+    { path: "environments/:envId/microservices/:mId", component: MicroserviceDetailsComponent, canActivate: [AuthGuard], title: "Microservice details" },
 
     { path: "clusters/local/:id/edit", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Edit cluster" },
     { path: "clusters/add/local", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Add new local cluster" },

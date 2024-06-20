@@ -4,6 +4,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { User } from '../_interfaces';
 import { environment } from 'src/environments/environment';
 import { Observable, catchError, map } from 'rxjs';
+import { CacheService } from './cache.service';
 
 
 @Injectable({ providedIn: 'root' })
@@ -13,7 +14,10 @@ export class UserService {
     private userToken: string | null | undefined;
     private readonly tokenKey = 'api.accessToken';
 
-    constructor(private http: HttpClient,) {
+    constructor(
+        private http: HttpClient,
+        private cacheService: CacheService,
+    ) {
         this.userToken = localStorage.getItem(this.tokenKey);
     }
 
@@ -35,7 +39,7 @@ export class UserService {
     }
 
     getUserById(id: string): Observable<any> {
-        return this.http.get<User>(this.apiUrl + `/dashboard/users/` + id)
+        return this.http.get<User>(this.apiUrl + `/dashboard/users/`+id)
     }
 
     register(user: User): Observable<any> {
@@ -64,8 +68,10 @@ export class UserService {
     logout() {
         if (this.userToken != null) {
             this.userToken = null;
-            // localStorage.removeItem(this.tokenKey);
             localStorage.clear();
+
+            // clear cache
+            this.cacheService.clear();
         }
     }
 }
