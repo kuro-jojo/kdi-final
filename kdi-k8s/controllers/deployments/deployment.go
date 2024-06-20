@@ -1,7 +1,6 @@
 package deployments
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -28,7 +27,7 @@ func GetDeploymentInNamespace(c *gin.Context) {
 	}
 
 	clientset := utils.GetClientSet(c)
-	deployment, err := clientset.AppsV1().Deployments(deploymentForm.Namespace).Get(context.TODO(), deploymentForm.DeploymentName, metav1.GetOptions{})
+	deployment, err := clientset.AppsV1().Deployments(deploymentForm.Namespace).Get(c, deploymentForm.DeploymentName, metav1.GetOptions{})
 	if err != nil && utils.IsNotFoundError(err.Error()) {
 		log.Printf("Error getting deployment: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": fmt.Sprintf("deployment %s not found in namespace %s", deploymentForm.DeploymentName, deploymentForm.Namespace)})

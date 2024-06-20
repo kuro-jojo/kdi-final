@@ -57,7 +57,7 @@ func UpdateUsingRollingUpdateStrategy(c *gin.Context, updateForm UpdateForm) {
 		return
 	}
 
-	log.Printf("Deployment %s updated successfully", updateForm.DeploymentName)
+	log.Printf("Deployment %s updated successfully", updateForm.Name)
 	c.JSON(http.StatusOK, gin.H{"message": "Deployment updated successfully"})
 }
 
@@ -69,7 +69,7 @@ func UpdateUsingRecreateStrategy(c *gin.Context, updateForm UpdateForm) {
 		return
 	}
 
-	log.Printf("Deployment %s updated successfully", updateForm.DeploymentName)
+	log.Printf("Deployment %s updated successfully", updateForm.Name)
 	c.JSON(http.StatusOK, gin.H{"message": "Deployment updated successfully"})
 }
 
@@ -82,9 +82,9 @@ func updateUsingK8sStrategy(c *gin.Context, updateForm UpdateForm, strategy v1.D
 	// RetryOnConflict uses exponential backoff to avoid exhausting the apiserver
 	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 
-		result, err := deployment.Get(context.TODO(), updateForm.DeploymentName, metav1.GetOptions{})
+		result, err := deployment.Get(context.TODO(), updateForm.Name, metav1.GetOptions{})
 		if err != nil && utils.IsNotFoundError(err.Error()) {
-			return fmt.Errorf("deployment %s not found in namespace %s", updateForm.DeploymentName, updateForm.Namespace)
+			return fmt.Errorf("deployment %s not found in namespace %s", updateForm.Name, updateForm.Namespace)
 		}
 		result.Spec.Replicas = &updateForm.Replicas
 		result.Spec.Strategy.Type = strategy
@@ -99,7 +99,7 @@ func updateUsingK8sStrategy(c *gin.Context, updateForm UpdateForm, strategy v1.D
 		result.Spec.Template.Spec.Containers[0].Image = updateForm.Image
 		_, updateErr := deployment.Update(context.TODO(), result, metav1.UpdateOptions{})
 		if updateErr != nil {
-			return fmt.Errorf("failed to update deployment %s: %v", updateForm.DeploymentName, updateErr)
+			return fmt.Errorf("failed to update deployment %s: %v", updateForm.Name, updateErr)
 		}
 		return nil
 	})

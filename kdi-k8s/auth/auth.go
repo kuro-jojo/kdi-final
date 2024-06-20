@@ -42,7 +42,7 @@ func AuthenticateToCluster(c *gin.Context) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		if claims["sub"] != os.Getenv("KDI_JWT_SUB_FOR_K8S_API") {
+		if claims["sub"] != os.Getenv("JWT_SUB_FOR_K8S_API") {
 			log.Printf("Unauthorized - invalid sub %v", claims["sub"])
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
@@ -159,7 +159,7 @@ func authenticateToClusterWithToken(authRequest AuthRequest) (*rest.Config, erro
 	if authRequest.Port != "" {
 		addr = fmt.Sprintf("%s:%s", authRequest.IpAddress, authRequest.Port)
 	}
-	log.Printf("Authenticating to cluster at %s", addr)
+	log.Printf("------- Authenticating to cluster at %s", addr)
 	config, err := clientcmd.BuildConfigFromFlags(addr, "")
 	if err != nil {
 		return nil, err
@@ -182,7 +182,7 @@ func retrieveTokenFromJWT(tokenString string, c *gin.Context) *jwt.Token {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(os.Getenv("KDI_JWT_SECRET_KEY")), nil
+		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
 	})
 
 	if err != nil {
