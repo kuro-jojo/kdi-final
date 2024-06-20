@@ -30,9 +30,9 @@ func GenerateJWT(claims map[string]interface{}) (string, error) {
 		s   string
 	)
 
-	key = []byte(os.Getenv("JWT_SECRET_KEY"))
+	key = []byte(os.Getenv("KDI_JWT_SECRET_KEY"))
 
-	claims["iss"] = os.Getenv("JWT_ISSUER") // issuer
+	claims["iss"] = os.Getenv("KDI_JWT_ISSUER") // issuer
 
 	t = jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims(claims))
 	s, err := t.SignedString(key)
@@ -60,7 +60,7 @@ func RetrieveTokenFromK8sJWT(tokenString string, secretKey string) (*jwt.Token, 
 }
 
 func GetTokenExpirationDate(tokenString string) (time.Time, error) {
-	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("JWT_SECRET_KEY"))
+	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("KDI_JWT_SECRET_KEY"))
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -83,7 +83,7 @@ func GetTokenExpirationDate(tokenString string) (time.Time, error) {
 
 // GetClusterTokenFromJWT returns the cluster token (service account token) from the JWT token string stored in the database
 func GetClusterTokenFromJWT(tokenString string) (string, error) {
-	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("JWT_SECRET_KEY"))
+	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("KDI_JWT_SECRET_KEY"))
 	if err != nil {
 		return "", err
 	}

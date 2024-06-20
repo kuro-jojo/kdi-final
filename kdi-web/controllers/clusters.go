@@ -379,7 +379,7 @@ func setupCluster(driver db.Driver, clusterForm ClusterForm, user models.User) (
 
 func generateClusterJWT(cluster models.Cluster, token string) (string, error) {
 	claims := make(map[string]interface{})
-	claims["sub"] = os.Getenv("JWT_SUB_FOR_K8S_API")
+	claims["sub"] = os.Getenv("KDI_JWT_SUB_FOR_K8S_API")
 	claims["token"] = token
 	claims["addr"] = cluster.IpAddress
 	claims["port"] = cluster.Port
