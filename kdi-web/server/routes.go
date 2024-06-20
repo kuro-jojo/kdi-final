@@ -31,7 +31,7 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 	{
 		users := dashboard.Group("users")
 		{
-			users.GET("", controllers.GetUser)
+			users.GET("current", controllers.GetUser)
 			users.GET("notifications", controllers.GetNotifications)
 			users.PATCH("notifications", controllers.ReadNotification)
 			users.DELETE("notifications", controllers.DeleteNotifications)
@@ -57,6 +57,8 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 
 			teamspaces.GET(":id/projects", controllers.GetProjectsByTeamspace)
 
+			teamspaces.GET(":id/clusters", controllers.GetClustersByTeamspace)
+
 			teamspaces.PATCH(":id/members", controllers.AddMemberToTeamspace)
 			teamspaces.DELETE(":id/members/:memberId", controllers.RemoveMemberFromTeamspace)
 			teamspaces.PATCH(":id/members/:memberId", controllers.UpdateMemberInTeamspace)
@@ -73,12 +75,17 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 		{
 			clusters.POST("", controllers.AddCluster)
 			clusters.GET("owned", controllers.GetClustersByCreator)
-			clusters.GET("teamspaces", controllers.GetClustersByTeamspace)
 			clusters.GET(":id", controllers.GetClusterByIDAndCreator)
+			clusters.GET("Name/:id", controllers.GetClusterName)
 			clusters.PATCH(":id", controllers.UpdateCluster)
 			clusters.DELETE(":id", controllers.DeleteCluster)
 
 			clusters.GET(":id/environments", controllers.GetEnvironmentsByCluster)
+		}
+
+		namespaces := dashboard.Group("namespaces")
+		{
+			namespaces.GET(":n_id", controllers.GetNamespace)
 		}
 
 		environments := dashboard.Group("environments")
@@ -94,6 +101,7 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 				microservices.GET("", controllers.GetMicroservicesByEnvironment)
 				microservices.POST("with-yaml", controllers.CreateMicroserviceWithYaml)
 				microservices.GET(":m_id", controllers.GetMicroserviceByEnvironment)
+				microservices.PATCH(":m_id", controllers.UpdateMicroservice)
 			}
 		}
 	}

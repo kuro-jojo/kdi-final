@@ -27,7 +27,6 @@ func Init() {
 	r := NewRouter()
 
 	log.Printf("Starting server on port: %s\n", port)
-	log.Printf("Version 2.0.0\n")
 
 	r.Run(": " + port)
 }

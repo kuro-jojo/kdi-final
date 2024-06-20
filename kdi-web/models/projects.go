@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/kuro-jojo/kdi-web/db"
@@ -42,9 +43,13 @@ func (p *Project) Update(driver db.Driver) error {
 
 func (p *Project) Delete(driver db.Driver) error {
 	// Supprimez le projet par son ID
-	_, err := driver.GetCollection(ProjectsCollection).DeleteOne(context.TODO(), bson.M{"_id": p.ID})
+	r, err := driver.GetCollection(ProjectsCollection).DeleteOne(context.TODO(), bson.M{"_id": p.ID})
+	log.Printf("Deleted %v documents", r.DeletedCount)
 	if err != nil {
 		return fmt.Errorf("failed to delete project: %v", err)
+	}
+	if r.DeletedCount == 0 {
+		return fmt.Errorf("ID %s not found", p.ID)
 	}
 	return nil
 }

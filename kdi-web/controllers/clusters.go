@@ -214,10 +214,8 @@ func GetClusterByIDAndCreator(c *gin.Context) {
 	}
 
 	queryParam := c.Query("token")
-	log.Printf("queryParam: %s", queryParam)
 	if queryParam != "" && queryParam == "false" {
 		// Retreive the cluster token from the JWT token
-		log.Printf("Token: %s", cluster.Token)
 		token, err := GetClusterTokenFromJWT(cluster.Token)
 		if err != nil {
 			log.Printf("Error getting cluster token from JWT %v", err)
@@ -225,11 +223,36 @@ func GetClusterByIDAndCreator(c *gin.Context) {
 			return
 		}
 		cluster.Token = token
-		// log.Printf("\n\n\nToken 2: %s", cluster.Token)
 	}
 
 	log.Println("Cluster retrieved successfully")
 	c.JSON(http.StatusOK, gin.H{"cluster": cluster})
+}
+
+func GetClusterName(c *gin.Context) {
+
+	_, driver := GetUserFromContext(c)
+	id := c.Param("id")
+	objectID, _ := primitive.ObjectIDFromHex(id)
+	cluster := models.Cluster{
+		ID: objectID,
+		//CreatorID: user.ID.Hex(),
+	}
+
+	err := cluster.Get(driver)
+
+	if err != nil {
+		log.Printf("Error getting cluster %v", err)
+		if er := utils.OnDuplicateKeyError(err, "Cluster"); er != nil {
+			c.JSON(http.StatusConflict, gin.H{"message": er.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		}
+		return
+	}
+	//c.JSON(http.StatusOK, gin.H{"message": message})
+	c.JSON(http.StatusOK, gin.H{"cluster": cluster.Name})
+
 }
 
 // GetClustersByTeamspace returns all clusters of the teamspace the user is in

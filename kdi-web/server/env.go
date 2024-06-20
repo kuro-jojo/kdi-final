@@ -11,18 +11,20 @@ func CheckForEnv() {
 
 	hasError := false
 
-	
 	if os.Getenv("KDI_WEB_API_PORT") == "" {
 		log.Println("KDI_WEB_API_PORT is not set")
 		hasError = true
 
 	}
 
-
 	if os.Getenv("KDI_WEBAPP_ENDPOINT") == "" {
 		log.Println("KDI_WEBAPP_ENDPOINT is not set")
 		hasError = true
 
+	}
+
+	if os.Getenv("KDI_K8S_API_ENDPOINT") == "" {
+		log.Println("KDI_K8S_API_ENDPOINT is not set")
 	}
 
 	if os.Getenv("KDI_MSAL_CLIENT_ID") == "" {

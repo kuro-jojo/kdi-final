@@ -39,9 +39,12 @@ func (n *Namespace) Update(driver db.Driver) error {
 
 func (n *Namespace) Delete(driver db.Driver) error {
 	// Supprimez le projet par son ID
-	_, err := driver.GetCollection(NamespacesCollection).DeleteOne(context.TODO(), bson.M{"_id": n.ID})
+	r, err := driver.GetCollection(NamespacesCollection).DeleteOne(context.TODO(), bson.M{"_id": n.ID})
 	if err != nil {
 		return fmt.Errorf("failed to delete namespace: %v", err)
+	}
+	if r.DeletedCount == 0 {
+		return fmt.Errorf("ID %s not found", n.ID)
 	}
 	return nil
 }

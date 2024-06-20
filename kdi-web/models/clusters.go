@@ -51,9 +51,12 @@ func (c *Cluster) Update(driver db.Driver) error {
 
 func (c *Cluster) Delete(driver db.Driver) error {
 	// Supprimez le projet par son ID
-	_, err := driver.GetCollection(ClustersColletion).DeleteOne(context.TODO(), bson.M{"_id": c.ID})
+	r, err := driver.GetCollection(ClustersColletion).DeleteOne(context.TODO(), bson.M{"_id": c.ID})
 	if err != nil {
 		return fmt.Errorf("failed to delete cluster: %v", err)
+	}
+	if r.DeletedCount == 0 {
+		return fmt.Errorf("ID %s not found", c.ID)
 	}
 	return nil
 }

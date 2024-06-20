@@ -250,7 +250,13 @@ func DeleteProject(c *gin.Context) {
 		ID:        projectID,
 		CreatorID: user.ID.Hex(),
 	}
-	if err := project.Delete(driver); err != nil {
+
+	err = project.Delete(driver)
+	if err != nil {
+		if utils.OnNotFoundError(err, "Project") != nil {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Project not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
 		return
 	}
@@ -258,55 +264,11 @@ func DeleteProject(c *gin.Context) {
 	// Répondre avec un message indiquant que le projet a été supprimé avec succès
 	c.JSON(http.StatusOK, gin.H{"message": "Project deleted successfully"})
 }
-
-/*func DeleteProjectInTeamspace(c *gin.Context) {
-	user, driver := GetUserFromContext(c)
-	p_id := c.Param("p_Id")
-
-	id := c.Param("teamId")
-	objectID, err := primitive.ObjectIDFromHex(id)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid teamspace ID"})
-		return
-	}
-
-	teamspace := models.Teamspace{
-		ID: objectID,
-	}
-	_, err = teamspace.Get(driver)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Teamspace not found"})
-		return
-	}
-
-	projectID, err := primitive.ObjectIDFromHex(p_id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
-		return
-	}
-
-	project := models.Project{
-		ID:        projectID,
-		CreatorID: user.ID.Hex(),
-	}
-	// Vérifiez si l'utilisateur a les autorisations nécessaires pour accéder à ce Teamspace
-	ok, code, message := MemberHasEnoughPrivilege(driver, []string{models.DeleteProjectRole}, teamspace, user)
-	if !ok {
-		return code, message
-	}
-	if err := project.Delete(driver); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
-		return
-	}
-
-	// Répondre avec un message indiquant que le projet a été supprimé avec succès
-	c.JSON(http.StatusOK, gin.H{"message": "Project deleted successfully"})
-}*/
 
 func projectFormIsInValid(form ProjectForm) bool {
 	return form.Name == ""
 }
+
 func UpdateProject(c *gin.Context) {
 	user, driver := GetUserFromContext(c)
 	id := c.Param("id")
@@ -331,61 +293,3 @@ func UpdateProject(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"Updated project": updatedProject})
 }
-
-// err = user.AddProject(driver, project)
-// if err != nil {
-// 	log.Printf("Error adding project to the user: %v", err)
-// 	if err = utils.OnDuplicateKeyError(err, "Project"); err != nil {
-// 		return http.StatusConflict, "Project already exists"
-// 	}
-// 	e := project.Delete(driver)
-// 	if project.Delete(driver); e != nil {
-// 		log.Printf("Error deleting project: %v", e)
-// 		return http.StatusInternalServerError, e.Error()
-// 	}
-// 	return http.StatusInternalServerError, err.Error()
-// }
-// err = user.AddProject(driver, project)
-// if err != nil {
-// 	log.Printf("Error adding project to the user: %v", err)
-// 	if err = utils.OnDuplicateKeyError(err, "Project"); err != nil {
-// 		return http.StatusConflict, "Project already exists"
-// 	}
-// 	e := project.Delete(driver)
-// 	if project.Delete(driver); e != nil {
-// 		log.Printf("Error deleting project: %v", e)
-// 		return http.StatusInternalServerError, e.Error()
-// 	}
-// 	return http.StatusInternalServerError, err.Error()
-// }
-
-// if inTeamspace {
-// 	err = teamspace.AddProject(driver, project)
-// 	if err != nil {
-// 		log.Printf("Error adding project to the teamspace: %v", err)
-// 		if err = utils.OnDuplicateKeyError(err, "Project"); err != nil {
-// 			return http.StatusConflict, "Project already exists in the teamspace"
-// 		}
-// 		e := project.Delete(driver)
-// 		if project.Delete(driver); e != nil {
-// 			log.Printf("Error deleting project: %v", e)
-// 			return http.StatusInternalServerError, e.Error()
-// 		}
-// 		return http.StatusInternalServerError, err.Error()
-// 	}
-// }
-// if inTeamspace {
-// 	err = teamspace.AddProject(driver, project)
-// 	if err != nil {
-// 		log.Printf("Error adding project to the teamspace: %v", err)
-// 		if err = utils.OnDuplicateKeyError(err, "Project"); err != nil {
-// 			return http.StatusConflict, "Project already exists in the teamspace"
-// 		}
-// 		e := project.Delete(driver)
-// 		if project.Delete(driver); e != nil {
-// 			log.Printf("Error deleting project: %v", e)
-// 			return http.StatusInternalServerError, e.Error()
-// 		}
-// 		return http.StatusInternalServerError, err.Error()
-// 	}
-// }

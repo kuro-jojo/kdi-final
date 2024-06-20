@@ -42,9 +42,12 @@ func (e *Environment) Update(driver db.Driver) error {
 
 func (e *Environment) Delete(driver db.Driver) error {
 	opts := options.Delete().SetHint(bson.D{{Key: "_id", Value: 1}})
-	_, err := driver.GetCollection(EnvironmentsCollection).DeleteOne(context.TODO(), opts)
+	r, err := driver.GetCollection(EnvironmentsCollection).DeleteOne(context.TODO(), opts)
 	if err != nil {
 		return fmt.Errorf("%v", err)
+	}
+	if r.DeletedCount == 0 {
+		return fmt.Errorf("ID %s not found", e.ID)
 	}
 	return nil
 }

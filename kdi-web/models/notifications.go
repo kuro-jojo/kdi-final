@@ -40,9 +40,12 @@ func (n *Notification) Create(driver db.Driver) error {
 // Delete removes a notification from the database when it is read
 func (n *Notification) Delete(driver db.Driver) error {
 	filter := bson.D{{Key: "_id", Value: n.ID}}
-	_, err := driver.GetCollection(NotificationsCollection).DeleteOne(context.TODO(), filter)
+	r, err := driver.GetCollection(NotificationsCollection).DeleteOne(context.TODO(), filter)
 	if err != nil {
 		return fmt.Errorf("%v", err)
+	}
+	if r.DeletedCount == 0 {
+		return fmt.Errorf("ID %s not found", n.ID)
 	}
 	return nil
 }

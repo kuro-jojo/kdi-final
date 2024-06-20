@@ -16,11 +16,11 @@ const (
 )
 
 type Container struct {
-	ID             primitive.ObjectID `bson:"_id,omitempty"`
-	Name           string             `bson:"name,omitempty"`
-	Image          string             `bson:"image,omitempty"`
-	MicroserviceID string             `bson:"microservice_id,omitempty"`
-	Port           int32              `bson:"port,omitempty"`
+	ID          primitive.ObjectID `bson:"id,omitempty"`
+	Name        string             `bson:"name,omitempty"`
+	Image       string             `bson:"image,omitempty"`
+	ContainerID string             `bson:"microservice_id,omitempty"`
+	Port        int32              `bson:"port,omitempty"`
 }
 
 func (c *Container) Create(driver db.Driver) error {
@@ -36,9 +36,12 @@ func (c *Container) Update(driver db.Driver) error {
 }
 
 func (c *Container) Delete(driver db.Driver) error {
-	_, err := driver.GetCollection(ContainersCollection).DeleteOne(context.TODO(), bson.M{"_id": c.ID})
+	r, err := driver.GetCollection(ContainersCollection).DeleteOne(context.TODO(), bson.M{"_id": c.ID})
 	if err != nil {
 		return fmt.Errorf("failed to delete container: %v", err)
+	}
+	if r.DeletedCount == 0 {
+		return fmt.Errorf("ID %s not found", c.ID)
 	}
 	return nil
 }

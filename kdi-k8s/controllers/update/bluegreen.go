@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 
 	v1 "k8s.io/api/apps/v1"
 	apicorev1 "k8s.io/api/core/v1"
@@ -65,7 +64,7 @@ func UpdateUsingBlueGreenStrategy(c *gin.Context, updateForm UpdateForm) error {
 
 	// Step 4: Update the service to point to the new deployment
 	fmt.Println("Updating the service to point to the new deployment")
-	err = updateService(c, service, newDeployment, updateForm)
+	err = updateService(c, service, updateForm)
 	if err != nil {
 		// Clean up the new deployment if updating the service fails
 		deleteErr := DeleteNewDeployment(c, newDeployment.Name, updateForm.Namespace)
@@ -132,28 +131,6 @@ func GetDeploymentStatus(c *gin.Context, deploymentName, namespace string) (*Dep
 	return status, nil
 }
 
-func verifyDeployment(c *gin.Context, deploymentName, namespace string) error {
-	clientset := utils.GetClientSet(c)
-	deploymentsClient = clientset.AppsV1().Deployments(namespace)
-
-	//Loop that tries for a maximum of 180 iterations
-	for i := 0; i < 180; i++ {
-		deployment, err := deploymentsClient.Get(c, deploymentName, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-		//Checks whether the number of replicas available corresponds to the number of replicas required.
-		if deployment.Status.AvailableReplicas == *deployment.Spec.Replicas {
-			// If the number of available replicas is equal to the number of replicas required, deployment is ready and the function returns nil (no error).
-			return nil
-		}
-		//Wait 1 second before checking again.
-		time.Sleep(1 * time.Second)
-	}
-	//If after 180 iterations the deployment is still not ready, return an error indicating that the deployment is not ready in time.
-	return errors.New("new deployment not ready in time")
-}
-
 func getServiceByDeployment(c *gin.Context, deployment *v1.Deployment, namespace string) (*apicorev1.Service, error) {
 	// Retrieve all services in the specified namespace
 	clientset := utils.GetClientSet(c)
@@ -209,7 +186,7 @@ func createNewDeployment(c *gin.Context, deployment *v1.Deployment, updateForm U
 	return createdDeployment, nil
 }
 
-func updateService(c *gin.Context, service *apicorev1.Service, newDeployment *v1.Deployment, updateForm UpdateForm) error {
+func updateService(c *gin.Context, service *apicorev1.Service, updateForm UpdateForm) error {
 	clientset := utils.GetClientSet(c)
 	servicesClient = clientset.CoreV1().Services(updateForm.Namespace)
 	selector := service.Spec.Selector
@@ -231,7 +208,7 @@ func DeleteNewDeployment(c *gin.Context, newDeploymentName string, namespace str
 	if err != nil {
 		return err
 	}
-	return errors.New("Failed to delete the deployment")
+	return errors.New("failed to delete the deployment")
 }
 
 func RedefineOldVersion(c *gin.Context, namespace string, deploymentName string) error {
@@ -255,45 +232,6 @@ func RedefineOldVersion(c *gin.Context, namespace string, deploymentName string)
 	if err != nil {
 		return fmt.Errorf("failed to update deployment: %v", err)
 	}
-
-	return nil
-}
-
-func rollbackToPreviousVersion(c *gin.Context, deployment *v1.Deployment, namespace string) error {
-	// Get the Kubernetes clientset
-	clientset := utils.GetClientSet(c)
-
-	// Retrieve the service associated with the deployment
-	service, err := getServiceByDeployment(c, deployment, namespace)
-	if err != nil {
-		return fmt.Errorf("failed to get associated service: %v", err)
-	}
-
-	// Determine the current and previous version labels
-	currentVersion := service.Spec.Selector["version"]
-	var previousVersion string
-	if currentVersion == "green" {
-		previousVersion = "blue"
-	} else if currentVersion == "blue" {
-		previousVersion = "green"
-	} else {
-		return errors.New("unknown version label")
-	}
-
-	// Update the service selector to point to the previous version
-	service.Spec.Selector["version"] = previousVersion
-
-	// Update the service in Kubernetes
-	_, err = clientset.CoreV1().Services(namespace).Update(c, service, metav1.UpdateOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to update service: %v", err)
-	}
-
-	// Optionally, verify that the previous version deployment is ready before returning
-	/*previousDeploymentName := fmt.Sprintf("%s-%s", deployment.Name, previousVersion)
-	if err := verifyDeployment(c, previousDeploymentName, namespace); err != nil {
-		return fmt.Errorf("previous version deployment is not ready: %v", err)
-	}*/
 
 	return nil
 }

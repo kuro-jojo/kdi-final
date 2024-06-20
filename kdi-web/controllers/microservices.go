@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"slices"
 	"time"
 
@@ -17,11 +19,11 @@ import (
 const (
 	NameForFilesForm = "files"
 	// TODO: Change this for production
-	KubernetesApiUrl = "http://localhost:8090/api/v1/kubernetes"
 )
 
 type K8sApiHttpResponse struct {
 	Messages      map[string][]string   `json:"messages"`
+	Message       string                `json:"message"`
 	Microservices []models.Microservice `json:"microservices"`
 }
 
@@ -40,6 +42,7 @@ type MicroserviceUpdateForm struct {
 }
 
 func CreateMicroserviceWithYaml(c *gin.Context) {
+	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
 
 	// retrieve the cluster from the environment
 	user, driver := GetUserFromContext(c)
@@ -133,7 +136,7 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	}
 
 	// Make a request to the kubernetes api
-	req, err := http.NewRequest("POST", KubernetesApiUrl+"/resources/with-yaml", c.Request.Body)
+	req, err := http.NewRequest("POST", kubernetesApiUrl+"/resources/with-yaml", c.Request.Body)
 	if err != nil {
 		log.Printf("Error creating request %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making deployments"})
@@ -163,6 +166,7 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	}
 
 	var r K8sApiHttpResponse
+	r.Messages = make(map[string][]string)
 	err = json.Unmarshal(body, &r)
 	if err != nil {
 		log.Printf("Error unmarshalling response body %v", err)
@@ -218,6 +222,9 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 		r.Messages["success"] = append(r.Messages["success"], "Microservice "+m.Name+" saved successfully")
 	}
 
+	if r.Message != "" {
+		r.Messages["error"] = append(r.Messages["error"], r.Message)
+	}
 	c.JSON(resp.StatusCode, gin.H{"messages": r.Messages, "microservices": r.Microservices})
 }
 
@@ -283,4 +290,160 @@ func GetMicroservicesByEnvironment(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"microservices": microservices, "size": len(microservices)})
+}
+
+func UpdateMicroservice(c *gin.Context) {
+	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
+
+	// Prepare the update form
+	var updateForm MicroserviceUpdateForm
+	if err := c.ShouldBindJSON(&updateForm); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid update form"})
+		return
+	}
+
+	_, driver := GetUserFromContext(c)
+
+	id := c.Param("m_id")
+	e_id := c.Param("e_id")
+	m_id, _ := primitive.ObjectIDFromHex(id)
+	env_id, err := primitive.ObjectIDFromHex(e_id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid microservice or environment ID"})
+		return
+	}
+
+	// 1. Get the microservice
+	microservice := models.Microservice{
+		ID: m_id,
+	}
+
+	err = microservice.Get(driver)
+	if err != nil {
+		log.Printf("Error getting microservice %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting microservice"})
+		return
+	}
+
+	// 2. Get the environment
+	environment := models.Environment{
+		ID: env_id,
+	}
+	err = environment.Get(driver)
+	if err != nil {
+		log.Printf("Error getting environment %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting environment"})
+		return
+	}
+
+	// 2. Get the namespace
+	namespace_id, err := primitive.ObjectIDFromHex(microservice.NamespaceID)
+	if err != nil {
+		log.Printf("Invalid namespace ID : %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid namespace ID"})
+		return
+	}
+
+	n := models.Namespace{
+		ID: namespace_id,
+	}
+
+	err = n.Get(driver)
+	if err != nil {
+		log.Printf("Error getting namespace %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting namespace"})
+		return
+	}
+
+	// 3. Get the cluster and make a request to the kubernetes api to create the microservice
+	c_id, err := primitive.ObjectIDFromHex(environment.ClusterID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid cluster ID"})
+		return
+	}
+
+	cluster := models.Cluster{
+		ID: c_id,
+	}
+
+	err = cluster.Get(driver)
+	if err != nil {
+		log.Printf("Error getting cluster %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting cluster"})
+		return
+	}
+
+	namespace := n.Name
+	deploymentName := microservice.Name
+
+	// Serialize the updateForm to JSON for the request body
+	updateFormJSON, err := json.Marshal(updateForm)
+	if err != nil {
+		log.Printf("Error marshalling update form to JSON: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error preparing update data"})
+		return
+	}
+
+	// Log the serialized JSON for debugging purposes
+	log.Printf("UpdateForm JSON: %s", updateFormJSON)
+
+	// Make a request to the kubernetes api
+	req, err := http.NewRequest("PATCH", kubernetesApiUrl+"/resources/namespaces/"+namespace+"/deployments/"+deploymentName, bytes.NewBuffer(updateFormJSON))
+	if err != nil {
+		log.Printf("Error creating request %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error updating deployment"})
+		return
+	}
+	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
+	req.Header.Set("Authorization", cluster.Token)
+
+	// Create a client
+	client := &http.Client{
+		Timeout: 120 * time.Second,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error making deployments %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making deployments"})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("Error from Kubernetes API: %v", string(bodyBytes))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error from Kubernetes API", "details": string(bodyBytes)})
+		return
+	}
+
+	if updateForm.Strategy == "blue-green" {
+
+		// Only update the microservice information if the Kubernetes API call was successful
+		microservice.Replicas = updateForm.Replicas
+		microservice.DeployedAt = time.Now()
+		microservice.Labels["version"] = "green"
+		microservice.Name = microservice.Name + "-green"
+		for i := range microservice.Containers {
+			microservice.Containers[i].Image = updateForm.Image
+		}
+
+	} else {
+		// Only update the microservice information if the Kubernetes API call was successful
+		microservice.Replicas = updateForm.Replicas
+		microservice.Strategy = updateForm.Strategy
+		microservice.DeployedAt = time.Now()
+		for i := range microservice.Containers {
+			microservice.Containers[i].Image = updateForm.Image
+		}
+	}
+
+	err = microservice.Update(driver)
+	if err != nil {
+		log.Printf("Error updating microservice %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error updating microservice"})
+		return
+	}
+
+	log.Printf("Microservice %s updated successfully", microservice.Name)
+	c.JSON(resp.StatusCode, gin.H{"message": "Microservice updated successfully", "microservice": microservice})
 }

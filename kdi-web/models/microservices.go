@@ -78,9 +78,12 @@ func (m *Microservice) Update(driver db.Driver) error {
 }
 
 func (m *Microservice) Delete(driver db.Driver) error {
-	_, err := driver.GetCollection(MicroservicesCollection).DeleteOne(context.TODO(), bson.M{"_id": m.ID})
+	r, err := driver.GetCollection(MicroservicesCollection).DeleteOne(context.TODO(), bson.M{"_id": m.ID})
 	if err != nil {
 		return fmt.Errorf("failed to delete microservice: %v", err)
+	}
+	if r.DeletedCount == 0 {
+		return fmt.Errorf("ID %s not found", m.ID)
 	}
 	return nil
 }
