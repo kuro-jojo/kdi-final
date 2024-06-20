@@ -14,7 +14,6 @@ import (
 	"github.com/kuro-jojo/kdi-web/db"
 	"github.com/kuro-jojo/kdi-web/db/mongodb"
 	"github.com/kuro-jojo/kdi-web/middlewares"
-	
 )
 
 const BASE_API = "/api/v1"
@@ -28,6 +27,7 @@ func Init() {
 	r := NewRouter()
 
 	log.Printf("Starting server on port: %s\n", port)
+	log.Printf("Version 2.0.0\n")
 
 	r.Run(": " + port)
 }
