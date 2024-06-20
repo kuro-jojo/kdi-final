@@ -55,14 +55,14 @@ jobs:
       #     cache-from: type=gha
       #     cache-to: type=gha,mode=max
 
-      # - name: Build and push Docker image for KDI-web
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     context: ./kdi-web
-      #     push: true
-      #     tags: ${{ secrets.DOCKER_USERNAME }}/kdi-web:latest
-      #     cache-from: type=gha
-      #     cache-to: type=gha,mode=max
+      - name: Build and push Docker image for KDI-web
+        uses: docker/build-push-action@v5
+        with:
+          context: ./kdi-web
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/kdi-web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
  
       - name: Build and push Docker image for KDI-webapp
         uses: docker/build-push-action@v5
