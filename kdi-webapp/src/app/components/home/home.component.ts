@@ -4,7 +4,6 @@ import { User } from 'src/app/_interfaces/user';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ClusterService } from 'src/app/_services/cluster.service';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
-import { Teamspace } from 'src/app/_interfaces/teamspace';
 import { Cluster } from 'src/app/_interfaces/cluster';
 import { ProjectService } from 'src/app/_services/project.service';
 @Component({
@@ -82,6 +81,7 @@ export class HomeComponent {
         return new Promise((resolve, reject) => {
             this.teamspaceService.getTeamspaceClusters(teamspaceID).subscribe({
                 next: (resp: { 'clusters': Cluster[] }) => {
+                    console.log(resp.clusters.filter((t: Cluster) => t.CreatorID !== String(this.user.ID)));
                     resolve(resp.clusters.filter((t: Cluster) => t.CreatorID !== String(this.user.ID)).length);
                 },
                 error: (error: HttpErrorResponse) => {
@@ -97,7 +97,7 @@ export class HomeComponent {
         return new Promise((resolve, reject) => {
             this.clusterService.getOwnedClusters().subscribe({
                 next: (resp) => {
-                    this.numberOfOwnedClusters = resp.clusters.length;
+                    this.numberOfOwnedClusters = resp.clusters ? resp.clusters.length : 0;
                     resolve();
                 },
                 error: (error: HttpErrorResponse) => {
@@ -112,7 +112,7 @@ export class HomeComponent {
         return new Promise((resolve, reject) => {
             this.teamspaceService.listTeamspacesOwned().subscribe({
                 next: (resp) => {
-                    this.numberOfOwnedTeamspaces = resp.teamspaces.length;
+                    this.numberOfOwnedTeamspaces = resp.teamspaces ? resp.teamspaces.length : 0;
                     resolve();
                 },
                 error: (error: HttpErrorResponse) => {
@@ -127,7 +127,7 @@ export class HomeComponent {
         return new Promise((resolve, reject) => {
             this.projectService.getOwnedProjects().subscribe({
                 next: (resp) => {
-                    this.numberOfOwnedProjects = resp.projects.length;
+                    this.numberOfOwnedProjects = resp.projects ? resp.projects.length : 0;
                     resolve();
                 },
                 error: (error: HttpErrorResponse) => {
@@ -142,7 +142,7 @@ export class HomeComponent {
         return new Promise((resolve, reject) => {
             this.projectService.listProjectsOfJoinedTeamspaces().subscribe({
                 next: (resp) => {
-                    this.numberOfTeamspaceProject = resp.projects.length;
+                    this.numberOfTeamspaceProject = resp.projects ? resp.projects.length : 0;
                     resolve();
                 },
                 error: (error: HttpErrorResponse) => {
