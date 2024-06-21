@@ -81,7 +81,6 @@ export class HomeComponent {
         return new Promise((resolve, reject) => {
             this.teamspaceService.getTeamspaceClusters(teamspaceID).subscribe({
                 next: (resp: { 'clusters': Cluster[] }) => {
-                    console.log(resp.clusters.filter((t: Cluster) => t.CreatorID !== String(this.user.ID)));
                     resolve(resp.clusters.filter((t: Cluster) => t.CreatorID !== String(this.user.ID)).length);
                 },
                 error: (error: HttpErrorResponse) => {
