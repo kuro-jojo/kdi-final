@@ -193,8 +193,8 @@ func GetEnvironment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"environment": env})
 }
 
-/*func DeleteEnvironment(c *gin.Context) {
-	user, driver := GetUserFromContext(c)
+func DeleteEnvironment(c *gin.Context) {
+	_, driver := GetUserFromContext(c)
 	id := c.Param("e_id")
 
 	// Obtenir l'environnement
@@ -207,139 +207,52 @@ func GetEnvironment(c *gin.Context) {
 	env := models.Environment{
 		ID: envID,
 	}
-
-	err = env.Get(driver)
+	// TODO: check if user has enough privilege to delete the environment
+	// 1. Get all the microservices of the environment
+	log.Printf("Environment %s - %s", env.ID.Hex(), env.Name)
+	m := models.Microservice{
+		EnvironmentID: env.ID.Hex(),
+	}
+	microservices, err := m.GetAllByEnvironment(driver)
 	if err != nil {
-		log.Printf("Error getting environment %v", err)
-		if er := utils.OnDuplicateKeyError(err, "Environment"); er != nil {
-			c.JSON(http.StatusConflict, gin.H{"message": er.Error()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		log.Printf("Error getting microservices %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+		return
+	}
+	for _, microservice := range microservices {
+		// TODO : Do not delete the microservice on the cluster if the user says so
+		log.Printf("Microservice %s - %s", microservice.ID.Hex(), microservice.Name)
+		// 2. Get all the containers of the microservice
+		co := models.Container{
+			MicroserviceID: microservice.ID.Hex(),
 		}
-		return
-	}
-
-	// Récupérer l'ID du projet à partir de l'environnement
-	projectID := env.ProjectID
-	projectObjectID, err := primitive.ObjectIDFromHex(projectID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
-		return
-	}
-
-	project := models.Project{
-		ID: projectObjectID,
-	}
-
-	err = project.Get(driver)
-
-	if err != nil {
-		log.Printf("Error getting project %v", err)
-		if er := utils.OnDuplicateKeyError(err, "Project"); er != nil {
-			c.JSON(http.StatusConflict, gin.H{"message": er.Error()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		containers, err := co.GetAllByMicroservice(driver)
+		if err != nil {
+			log.Printf("Error getting containers %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+			return
 		}
-		return
-	}
-
-	// Récupérer l'ID de la teamspace à partir du projet
-	teamID := project.TeamspaceID
-	teamObjectID, err := primitive.ObjectIDFromHex(teamID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
-		return
-	}
-
-	team := models.Teamspace{
-		ID: teamObjectID,
-	}
-
-	err = team.Get(driver)
-
-	if err != nil {
-		log.Printf("Error getting team %v", err)
-		if er := utils.OnDuplicateKeyError(err, "Team"); er != nil {
-			c.JSON(http.StatusConflict, gin.H{"message": er.Error()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		for _, container := range containers {
+			log.Printf("Container %s - %s", container.ID.Hex(), container.Name)
+			// 3. Delete the container
+			err = container.Delete(driver)
+			if err != nil {
+				log.Printf("Error deleting container %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+				return
+			}
+			log.Printf("Container %s deleted successfully", container.ID.Hex())
 		}
-		return
+		// 4. Delete the microservice
+		err = microservice.Delete(driver)
+		if err != nil {
+			log.Printf("Error deleting microservice %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+			return
+		}
+		log.Printf("Microservice %s deleted successfully", microservice.ID.Hex())
 	}
-
-	// Vérifiez si l'utilisateur a les autorisations nécessaires pour accéder à ce Teamspace
-	ok, _, _ := MemberHasEnoughPrivilege(driver, []string{models.DeleteEnvironmentRole}, team, user)
-	if !ok {
-		return
-	}
-
-	if err := env.Delete(driver); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete environment"})
-		return
-	}
-
-	// Répondre avec un message indiquant que le projet a été supprimé avec succès
-	c.JSON(http.StatusOK, gin.H{"message": "Environment deleted successfully"})
-
 }
-
-func DeleteEnvironment(c *gin.Context) {
-	user, driver := GetUserFromContext(c)
-	id := c.Param("e_id")
-
-	envID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid environment ID"})
-		return
-	}
-
-	environment := models.Environment{
-		ID: envID,
-	}
-	project_id := environment.ProjectID
-	projectID, err := primitive.ObjectIDFromHex(project_id)
-	if err != nil {
-		log.Println("Project ID:", projectID.Hex())
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
-		return
-	} else {
-		// Log projectID
-		log.Println("Project ID:", projectID.Hex())
-		c.JSON(http.StatusOK, gin.H{"success": projectID})
-	}
-
-	projet := models.Project{
-		ID: projectID,
-	}
-	teamspace_id := projet.TeamspaceID
-	teamspaceID, err := primitive.ObjectIDFromHex(teamspace_id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid team ID"})
-		return
-	} else {
-		// Log teamspaceID
-		log.Println("Teamspace ID:", teamspaceID.Hex())
-		c.JSON(http.StatusOK, gin.H{"success": teamspaceID})
-	}
-
-	teamspace := models.Teamspace{
-		ID: teamspaceID,
-	}
-
-	// Vérifiez si l'utilisateur a les autorisations nécessaires pour accéder à ce Teamspace
-	ok, _, _ := MemberHasEnoughPrivilege(driver, []string{models.DeleteEnvironmentRole}, teamspace, user)
-	if !ok {
-		return
-	}
-
-	if err := environment.Delete(driver); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete environment"})
-		return
-	}
-
-	// Répondre avec un message indiquant que le projet a été supprimé avec succès
-	c.JSON(http.StatusOK, gin.H{"message": "Environment deleted successfully"})
-}*/
 
 func UpdateEnvironment(c *gin.Context) {
 	_, driver := GetUserFromContext(c)
@@ -364,29 +277,6 @@ func UpdateEnvironment(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"Updated project": updatedEnvironment})
 }
-
-/* GetClustersByCreator returns all environments of the current user
-func GetEnvironmentsByCreator(c *gin.Context) {
-	log.Println("Listing all environments of the current user...")
-	user, driver := GetUserFromContext(c)
-
-	environment := models.Environment{
-		CreatorID: user.ID.Hex(),
-	}
-
-	environments, err := environment.GetAllByCreator(driver)
-	if err != nil {
-		log.Printf("Error getting environment %v", err)
-		if utils.OnNotFoundError(err, "Environment") != nil {
-			c.JSON(http.StatusNotFound, gin.H{"message": "Environment not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting environment"})
-		}
-		return
-	}
-	log.Println("Environments retrieved successfully")
-	c.JSON(http.StatusOK, gin.H{"environments": environments, "size": len(environments)})
-}*/
 
 func GetEnvironmentsByProject(c *gin.Context) {
 	log.Println("Listing all environments associated to a project...")
@@ -438,15 +328,3 @@ func GetEnvironmentsByProject(c *gin.Context) {
 	// Envoyer la réponse JSON
 	c.JSON(http.StatusOK, response)
 }
-
-/*func getTokenInfo(token string) {
-	claims := jwt.MapClaims{}
-	token, _ := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("<YOUR VERIFICATION KEY>"), nil
-	})
-
-	// do something with decoded claims
-	for key, val := range claims {
-		fmt.Printf("Key: %v, value: %v\n", key, val)
-	}
-}*/

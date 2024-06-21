@@ -134,14 +134,23 @@
                                     hh:mm a" }} </td>
                             </ng-container>
 
-                            <ng-container matColumnDef="CreatorID">
+                            <ng-container matColumnDef="Creator">
                                 <th mat-header-cell *matHeaderCellDef mat-sort-header
                                     sortActionDescription="Sort by owner">
                                     Creator
                                 </th>
                                 <td mat-cell *matCellDef="let element">{{ element.Owner }} </td>
                             </ng-container>
+                            <ng-container matColumnDef="actions">
+                                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                                <td mat-cell *matCellDef="let project">
+                                    <button mat-icon-button color="warn" class="btn btn-outline-primary"
+                                        (click)="viewProject(project.ID)">
+                                        <mat-icon>view</mat-icon>
+                                    </button>
 
+                                </td>
+                            </ng-container>
 
                             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>

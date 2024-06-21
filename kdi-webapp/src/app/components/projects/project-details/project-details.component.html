@@ -25,6 +25,11 @@
                         <div class="text-end">
                             <button class="btn btn-outline-primary" data-bs-toggle="modal"
                                 data-bs-target="#editProjectModal">Modify informations</button>
+
+                            <button mat-icon-button color="warn" class="btn btn-danger"
+                                (click)="deleteProject(project.ID)">
+                                <mat-icon>Delete project</mat-icon>
+                            </button>
                         </div>
                         <div class="modal fade" id="editProjectModal" tabindex="-1"
                             aria-labelledby="editProjectModalLabel" aria-hidden="true">
@@ -42,12 +47,12 @@
                                             <div class="mb-3">
                                                 <label for="name" class="form-label">Name</label>
                                                 <input type="text" class="form-control" id="name" name="name"
-                                                    [(ngModel)]="project.project.Name">
+                                                    [(ngModel)]="project.Name">
                                             </div>
                                             <div class="mb-3">
                                                 <label for="description" class="form-label">Description</label>
                                                 <input type="text" class="form-control" id="description"
-                                                    name="description" [(ngModel)]="project.project.Description">
+                                                    name="description" [(ngModel)]="project.Description">
                                             </div>
                                         </form>
                                     </div>
@@ -61,18 +66,18 @@
                             </div>
                         </div>
                         <div class="project-info mb-2">
-                            <span class="text-bold">Name : </span><span>{{project.project.Name}}</span>
+                            <span class="text-bold">Name : </span><span>{{project.Name}}</span>
                         </div>
                         <div class="project-info mb-2">
-                            <span class="text-bold">Description : </span><span>{{project.project.Description ?
-                                project.project.Description : "No description"}}</span>
+                            <span class="text-bold">Description : </span><span>{{project.Description ?
+                                project.Description : "No description"}}</span>
                         </div>
                         <div class="project-info mb-2">
-                            <span class="text-bold">Teamspace : </span><span>{{project.project.TeamspaceID ?
-                                project.project.TeamspaceID : "No teamspace"}}</span>
+                            <span class="text-bold">Teamspace : </span><span>{{project.TeamspaceID ?
+                                project.TeamspaceID : "No teamspace"}}</span>
                         </div>
                         <div class="project-info mb-2">
-                            <span class="text-bold">Creation Date : </span><span>{{project.project.CreatedAt | date:"MMM
+                            <span class="text-bold">Creation Date : </span><span>{{project.CreatedAt | date:"MMM
                                 dd, yyyy 'at' hh:mm a"}}</span>
                         </div>
                     </div>
@@ -118,13 +123,10 @@
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef>Actions</th>
                                 <td mat-cell *matCellDef="let env">
-                                    <button mat-icon-button color="warn" class="btn btn-outline-primary" (click)="onEnvClick(env.ID)">
+                                    <button mat-icon-button color="warn" class="btn btn-outline-primary"
+                                        (click)="onEnvClick(env.ID)">
                                         <mat-icon>view</mat-icon>
                                     </button>
-                                    <!--<button mat-icon-button color="warn" class="btn btn-outline-danger">
-                                        <mat-icon>delete</mat-icon>
-                                    </button>-->
-
                                 </td>
                             </ng-container>
 

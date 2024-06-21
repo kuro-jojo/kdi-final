@@ -251,6 +251,107 @@ func DeleteProject(c *gin.Context) {
 		CreatorID: user.ID.Hex(),
 	}
 
+	// check if the user has enough privilege to delete the project
+	err = project.Get(driver)
+	if err != nil {
+		if utils.OnNotFoundError(err, "Project") != nil {
+			c.JSON(http.StatusNotFound, gin.H{"message": "Project not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve project"})
+		return
+	}
+	// Check if the user has enough privilege in the teamspace to make deployments
+	if project.TeamspaceID != "" {
+		t_id, err := primitive.ObjectIDFromHex(project.TeamspaceID)
+		if err != nil {
+			log.Printf("Invalid teamspace ID : %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid teamspace ID"})
+			return
+		}
+		teamspace := models.Teamspace{
+			ID: t_id,
+		}
+		err = teamspace.Get(driver)
+		if err != nil {
+			log.Printf("Error getting teamspace %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting teamspace"})
+			return
+		}
+		ok, code, message := MemberHasEnoughPrivilege(driver, []string{models.DeleteClusterRole}, teamspace, user)
+		if !ok {
+			log.Println(message)
+			c.JSON(code, gin.H{"message": message})
+			return
+		}
+	}
+	// Before deleting the project, we need to delete all its components
+	// 1. Get all the environments of the project
+	e := models.Environment{
+		ProjectID: projectID.Hex(),
+	}
+	environments, err := e.GetAllByProject(driver)
+	if err != nil {
+		log.Printf("Error getting environments %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+		return
+	}
+	for _, env := range environments {
+		// 2. Get all the microservices of the environment
+		log.Printf("Environment %s - %s", env.ID.Hex(), env.Name)
+		m := models.Microservice{
+			EnvironmentID: env.ID.Hex(),
+		}
+		microservices, err := m.GetAllByEnvironment(driver)
+		if err != nil {
+			log.Printf("Error getting microservices %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+			return
+		}
+		for _, microservice := range microservices {
+			// TODO : Do not delete the microservice on the cluster if the user says so
+			log.Printf("Microservice %s - %s", microservice.ID.Hex(), microservice.Name)
+			// 3. Get all the containers of the microservice
+			co := models.Container{
+				MicroserviceID: microservice.ID.Hex(),
+			}
+			containers, err := co.GetAllByMicroservice(driver)
+			if err != nil {
+				log.Printf("Error getting containers %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+				return
+			}
+			for _, container := range containers {
+				log.Printf("Container %s - %s", container.ID.Hex(), container.Name)
+				// 4. Delete the container
+				err = container.Delete(driver)
+				if err != nil {
+					log.Printf("Error deleting container %v", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+					return
+				}
+				log.Printf("Container %s deleted successfully", container.ID.Hex())
+			}
+			// 5. Delete the microservice
+			err = microservice.Delete(driver)
+			if err != nil {
+				log.Printf("Error deleting microservice %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+				return
+			}
+			log.Printf("Microservice %s deleted successfully", microservice.ID.Hex())
+		}
+		// 6. Delete the environment
+		err = env.Delete(driver)
+		if err != nil {
+			log.Printf("Error deleting environment %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+			return
+		}
+		log.Printf("Environment %s deleted successfully", env.ID.Hex())
+	}
+
+	// Delete the project
 	err = project.Delete(driver)
 	if err != nil {
 		if utils.OnNotFoundError(err, "Project") != nil {

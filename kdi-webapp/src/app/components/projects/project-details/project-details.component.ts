@@ -15,6 +15,7 @@ import { ReloadComponent } from 'src/app/component.util';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
 import { Teamspace } from 'src/app/_interfaces/teamspace';
 import { MessageService } from 'primeng/api';
+import { timer } from 'rxjs';
 
 @Component({
     selector: 'app-project-details',
@@ -30,15 +31,13 @@ export class ProjectDetailsComponent {
     @ViewChild(MatSort)
     sort!: MatSort;
 
-    project: { project: Project } = {
-        project: {
-            ID: '',
-            Name: '',
-            Description: '',
-            CreatedAt: new Date,
-            CreatorID: '',
-            TeamspaceID: ''
-        }
+    project: Project = {
+        ID: '',
+        Name: '',
+        Description: '',
+        CreatedAt: new Date,
+        CreatorID: '',
+        TeamspaceID: ''
     };
     updatedProject!: Project;
     projectToUpdate!: Project;
@@ -78,12 +77,12 @@ export class ProjectDetailsComponent {
         this.projectService.getProjectDetails(this.projectId)
             .subscribe({
                 next: (resp) => {
-                    this.project = resp;
-                    if (this.project.project.TeamspaceID) {
-                        this.teamspaceService.getTeamspaceById(this.project.project.TeamspaceID).subscribe({
+                    this.project = resp.project;
+                    if (this.project.TeamspaceID) {
+                        this.teamspaceService.getTeamspaceById(this.project.TeamspaceID).subscribe({
                             next: (resp) => {
                                 this.teamspace = resp;
-                                this.project.project.TeamspaceID = this.teamspace.teamspace.Name;
+                                this.project.TeamspaceID = this.teamspace.teamspace.Name;
                             },
                             error: (error: HttpErrorResponse) => {
                                 console.error("Error getting teamspace: ", error.error.message || error.error);
@@ -131,21 +130,27 @@ export class ProjectDetailsComponent {
     }
 
     deleteProject(projectId: string): void {
-        if (confirm('Are you sure you want to delete this project?')) {
-            this.projectService.deleteProject(projectId).subscribe(() => {
-                this.snackBar.open('Project deleted successfully', 'Close', {
-                    duration: 3000,
-                    verticalPosition: 'top',
-                    horizontalPosition: 'end'
-                });
-                // Rechargez la liste des projets après la suppression
-                this.reloadPage();
+        if (confirm('Are you sure you want to delete this project?')
+            && confirm('This action is irreversible. All data related to this project will be lost.')
+            && confirm('Are you sure you want to delete this project?')) {
+            this.projectService.deleteProject(projectId).subscribe({
+                next: () => {
+                    console.log("Project deleted successfully!");
+                    this.messageService.add({ severity: 'info', summary: "Project deleted successfully!" });
+                    // Rechargement de la liste des projets après la suppression
+                    timer(1000).subscribe(() => {
+                        this.reloadPage();
+                    });
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.messageService.add({ severity: 'error', summary: error.error.message });
+                }
             });
         }
     }
 
     confirmUpdate(): void {
-        this.projectService.updateProject(this.project.project).subscribe(() => {
+        this.projectService.updateProject(this.project).subscribe(() => {
             this.closeModal.nativeElement.click();
         });
     }

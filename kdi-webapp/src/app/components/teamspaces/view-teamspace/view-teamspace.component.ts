@@ -10,11 +10,13 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { ProjectService } from 'src/app/_services/project.service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { first } from 'rxjs';
+import { first, timer } from 'rxjs';
 import { Profile } from 'src/app/_interfaces/profile';
 import { ProfileService } from 'src/app/_services/profile.service';
 import { ReloadComponent } from 'src/app/component.util';
 import { MessageService } from 'primeng/api';
+
+
 
 @Component({
     selector: 'app-view-teamspace',
@@ -22,7 +24,7 @@ import { MessageService } from 'primeng/api';
     styleUrl: './view-teamspace.component.css'
 })
 export class ViewTeamspaceComponent {
-    displayedColumns: string[] = ['Name', 'Description', 'CreatedAt', 'CreatorID'];
+    displayedColumns: string[] = ['Name', 'Description', 'CreatedAt', 'Creator', 'actions'];
     dataSource: MatTableDataSource<Project> = new MatTableDataSource<Project>();
     @ViewChild(MatPaginator)
     paginator!: MatPaginator;
@@ -243,6 +245,30 @@ export class ViewTeamspaceComponent {
                         this.loading = false;
                     }
                 });
+        }
+    }
+
+    viewProject(id: string) {
+        this.router.navigate(['projects/' + id]);
+    }
+
+    deleteProject(projectId: string): void {
+        if (confirm('Are you sure you want to delete this project?')
+            && confirm('This action is irreversible. All data related to this project will be lost.')
+            && confirm('Are you sure you want to delete this project?')) {
+            this.projectService.deleteProject(projectId).subscribe({
+                next: () => {
+                    console.log("Project deleted successfully!");
+                    this.messageService.add({ severity: 'info', summary: "Project deleted successfully!" });
+                    // Rechargement de la liste des projets après la suppression
+                    timer(1000).subscribe(() => {
+                        this.reloadPage();
+                    });
+                },
+                error: (error: HttpErrorResponse) => {
+                    this.messageService.add({ severity: 'error', summary: error.error.message });
+                }
+            });
         }
     }
 

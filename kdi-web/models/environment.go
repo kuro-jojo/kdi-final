@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -41,10 +40,9 @@ func (e *Environment) Update(driver db.Driver) error {
 }
 
 func (e *Environment) Delete(driver db.Driver) error {
-	opts := options.Delete().SetHint(bson.D{{Key: "_id", Value: 1}})
-	r, err := driver.GetCollection(EnvironmentsCollection).DeleteOne(context.TODO(), opts)
+	r, err := driver.GetCollection(EnvironmentsCollection).DeleteOne(context.TODO(), bson.M{"_id": e.ID})
 	if err != nil {
-		return fmt.Errorf("%v", err)
+		return fmt.Errorf("failed to delete cluster: %v", err)
 	}
 	if r.DeletedCount == 0 {
 		return fmt.Errorf("ID %s not found", e.ID)

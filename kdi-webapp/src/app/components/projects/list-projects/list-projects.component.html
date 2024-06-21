@@ -77,7 +77,7 @@
                                         <mat-icon>delete</mat-icon>
                                     </button>
                                     <button mat-icon-button color="warn" class="btn btn-outline-primary"
-                                        (click)="onProjectClick(project.ID)">
+                                        (click)="viewProject(project.ID)">
                                         <mat-icon>view</mat-icon>
                                     </button>
 
@@ -141,19 +141,19 @@
                                     sortActionDescription="Sort by owner">
                                     Owner
                                 </th>
-                                <td mat-cell *matCellDef="let element" class="fw-medium"
-                                    (click)="onProjectClick(element.ID)"> {{element.Owner}} </td>
+                                <td mat-cell *matCellDef="let element" class="fw-medium"> {{element.Owner}} </td>
                             </ng-container>
 
 
                             <ng-container matColumnDef="actions">
                                 <th mat-header-cell *matHeaderCellDef>Actions</th>
                                 <td mat-cell *matCellDef="let project">
-                                    <button mat-icon-button color="warn" class="btn btn-outline-danger">
+                                    <button mat-icon-button color="warn" class="btn btn-outline-danger"
+                                        (click)="deleteProject(project.ID)">
                                         <mat-icon>delete</mat-icon>
                                     </button>
                                     <button mat-icon-button color="warn" class="btn btn-outline-primary"
-                                        (click)="onProjectClick(project.ID)">
+                                        (click)="viewProject(project.ID)">
                                         <mat-icon>view</mat-icon>
                                     </button>
 

@@ -16,11 +16,11 @@ const (
 )
 
 type Container struct {
-	ID          primitive.ObjectID `bson:"id,omitempty"`
-	Name        string             `bson:"name,omitempty"`
-	Image       string             `bson:"image,omitempty"`
-	ContainerID string             `bson:"microservice_id,omitempty"`
-	Port        int32              `bson:"port,omitempty"`
+	ID             primitive.ObjectID `bson:"id,omitempty"`
+	Name           string             `bson:"name,omitempty"`
+	Image          string             `bson:"image,omitempty"`
+	MicroserviceID string             `bson:"microservice_id,omitempty"`
+	Port           int32              `bson:"port,omitempty"`
 }
 
 func (c *Container) Create(driver db.Driver) error {
@@ -56,6 +56,11 @@ func (c *Container) Get(driver db.Driver) error {
 		return fmt.Errorf("%v", err)
 	}
 	return nil
+}
+
+func (c *Container) GetAllByMicroservice(driver db.Driver) ([]Container, error) {
+	filter := bson.D{{Key: "microservice_id", Value: c.MicroserviceID}}
+	return c.GetAllBy(filter, driver)
 }
 
 // GetAll retrieves all containers

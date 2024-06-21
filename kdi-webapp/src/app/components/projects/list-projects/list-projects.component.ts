@@ -48,7 +48,7 @@ export class ListProjectsComponent {
     ) {
     }
 
-    onProjectClick(id: string) {
+    viewProject(id: string) {
         this.router.navigate(['projects/' + id]);
     }
 
@@ -139,7 +139,9 @@ export class ListProjectsComponent {
     };
 
     deleteProject(projectId: string): void {
-        if (confirm('Are you sure you want to delete this project?')) {
+        if (confirm('Are you sure you want to delete this project?')
+            && confirm('This action is irreversible. All data related to this project will be lost.')
+            && confirm('Are you sure you want to delete this project?')) {
             this.projectService.deleteProject(projectId).subscribe({
                 next: () => {
                     console.log("Project deleted successfully!");
@@ -156,19 +158,6 @@ export class ListProjectsComponent {
         }
     }
 
-    /*deleteProjectFromTeamspace(teamId: string, projectId: string): void{
-      if (confirm('Are you sure you want to delete this project?')) {
-        this.teamspaceService.deleteProjectInTeamspace(teamId, projectId).subscribe(() => {
-          this.toastComponent.message = "Project deleted successfully!";
-          this.toastComponent.toastType = 'success';
-          this.triggerToast();
-            // Rechargement de la liste des projets après la suppression
-            this.router.navigateByUrl('/refresh', { skipLocationChange: true }).then(() => {
-        this.router.navigate(['/projects']);
-    });
-        });
-    }
-    }*/
     reloadPage() {
         ReloadComponent(true, this.router);
     }
