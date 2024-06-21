@@ -25,6 +25,7 @@ func CheckForEnv() {
 
 	if os.Getenv("KDI_K8S_API_ENDPOINT") == "" {
 		log.Println("KDI_K8S_API_ENDPOINT is not set")
+		hasError = true
 	}
 
 	if os.Getenv("KDI_MSAL_CLIENT_ID") == "" {
@@ -94,6 +95,4 @@ func LoadEnv() {
 	}
 	CheckForEnv()
 	log.Println("Environment variables loaded successfully : ")
-	log.Println("KDI_WEB_API_PORT : ", os.Getenv("KDI_WEB_API_PORT"))
-	log.Println("KDI_WEBAPP_ENDPOINT : ", os.Getenv("KDI_WEBAPP_ENDPOINT"))
 }

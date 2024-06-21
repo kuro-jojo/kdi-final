@@ -48,6 +48,7 @@ export class HomeComponent {
             this.numberOfClusters = this.numberOfOwnedClusters + this.numberOfTeamspaceClusters;
             this.numberOfTeamspaces = this.numberOfOwnedTeamspaces + this.numberOfJoinedTeamspaces;
             this.numberOfProjects = this.numberOfOwnedProjects + this.numberOfTeamspaceProject;
+            console.log(this.user);
         } catch (error) {
             console.error(error);
         }
