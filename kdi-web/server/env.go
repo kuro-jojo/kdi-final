@@ -22,7 +22,7 @@ func CheckForEnv() {
 		hasError = true
 
 	}
-	log.Println("KDI_K8S_API_ENDPOINT is set to : ", os.Getenv("KDI_K8S_API_ENDPOINT"))
+	log.Println("KDI_K8S_API_ENDPOINT v2 is set to : ", os.Getenv("KDI_K8S_API_ENDPOINT"))
 	if os.Getenv("KDI_K8S_API_ENDPOINT") == "" {
 		log.Println("KDI_K8S_API_ENDPOINT is not set")
 		hasError = true
