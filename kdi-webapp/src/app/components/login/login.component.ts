@@ -30,6 +30,7 @@ export class LoginComponent {
 
     ngOnInit() {
         // redirect to home if already logged in
+        console.log("In login component");
         if (this.msalAuthService.instance.getAllAccounts().length > 0 || this.userService.isAuthentificated) {
             // get return url from route parameters or default to '/'
             const { redirect } = window.history.state;
