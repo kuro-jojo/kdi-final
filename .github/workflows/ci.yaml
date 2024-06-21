@@ -64,17 +64,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # - name: Build and push Docker image for KDI-webapp
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     context: ./kdi-webapp
-      #     push: true
-      #     tags: ${{ secrets.DOCKER_USERNAME }}/kdi-webapp:latest
-      #     secrets: |
-      #       "kdi_web_api_endpoint=${{ secrets.KDI_WEBAPP_WEP_API_ENDPOINT }}"
-      #       "kdi_web_msal_client_id=${{ secrets.KDI_WEBAPP_MSAL_CLIENT_ID }}"
-      #       "kdi_web_msal_authority=${{ secrets.KDI_WEBAPP_MSAL_AUTHORITY }}"
-      #       "kdi_web_msal_redirect_uri=${{ secrets.KDI_WEBAPP_MSAL_REDIRECT_URI }}"
-      #       "kdi_web_msal_scope=${{ secrets.KDI_WEBAPP_MSAL_SCOPE }}"
-      #     cache-from: type=gha
-      #     cache-to: type=gha,mode=max
+      - name: Build and push Docker image for KDI-webapp
+        uses: docker/build-push-action@v5
+        with:
+          context: ./kdi-webapp
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/kdi-webapp:latest
+          secrets: |
+            "kdi_web_api_endpoint=${{ secrets.KDI_WEBAPP_WEP_API_ENDPOINT }}"
+            "kdi_web_msal_client_id=${{ secrets.KDI_WEBAPP_MSAL_CLIENT_ID }}"
+            "kdi_web_msal_authority=${{ secrets.KDI_WEBAPP_MSAL_AUTHORITY }}"
+            "kdi_web_msal_redirect_uri=${{ secrets.KDI_WEBAPP_MSAL_REDIRECT_URI }}"
+            "kdi_web_msal_scope=${{ secrets.KDI_WEBAPP_MSAL_SCOPE }}"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

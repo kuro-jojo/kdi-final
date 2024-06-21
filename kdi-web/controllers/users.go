@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	TokenEpirationDate = time.Hour * 4 * 1 // 1 days
+	TokenEpirationDate = time.Hour * 24 * 1 // 1 days
 )
 
 type UserForm struct {
@@ -156,8 +156,8 @@ func RegisterWithMsal(c *gin.Context) {
 }
 
 func GetUser(c *gin.Context) {
-	u, _ := c.Get("user")
-	user := u.(models.User)
+	user, _ := GetUserFromContext(c)
+	user.Password = ""
 
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
