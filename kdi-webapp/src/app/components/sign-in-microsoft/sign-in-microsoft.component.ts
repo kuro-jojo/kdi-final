@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
 import { EventMessage, EventType, InteractionStatus } from '@azure/msal-browser';
-import { Subject, filter, takeUntil } from 'rxjs';
+import { Subject, filter, takeUntil, timer } from 'rxjs';
 import { UserService } from '../../_services';
 import { environment } from 'src/environments/environment';
 import { ServerService } from '../../_services/server.service';
 import { MessageService } from 'primeng/api';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-sign-in-microsoft',
@@ -25,6 +26,7 @@ export class SignInMicrosoftComponent {
         private userService: UserService,
         private serverService: ServerService,
         private messageService: MessageService,
+        private router: Router,
     ) {
     }
 
@@ -64,6 +66,10 @@ export class SignInMicrosoftComponent {
                                             next: () => {
                                                 // get return url from route parameters or default to '/'
                                                 this.messageService.add({ severity: 'success', summary: 'You have successfully logged in!', detail: ' ' });
+                                                timer(1000).subscribe(() => {
+                                                    const { redirect } = window.history.state;
+                                                    this.router.navigateByUrl(redirect || '');
+                                                });
                                             },
                                             error: (error) => {
                                                 console.error("Error while registering user: ", error.message)
