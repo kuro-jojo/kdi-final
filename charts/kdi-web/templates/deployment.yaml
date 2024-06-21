@@ -44,7 +44,7 @@ spec:
               value: "{{ .Values.service.port }}"
             - name: KDI_K8S_API_ENDPOINT
               valueFrom:
-              configMapKeyRef:
+                configMapKeyRef:
                   name: {{ include "kdi-web.fullname" . }}
                   key: KDI_K8S_API_ENDPOINT
             - name: KDI_WEBAPP_ENDPOINT
