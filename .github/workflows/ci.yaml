@@ -69,7 +69,7 @@ jobs:
         with:
           context: ./kdi-webapp
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/kdi-webapp:1.0.0
+          tags: ${{ secrets.DOCKER_USERNAME }}/kdi-webapp:latest
           secrets: |
             "kdi_web_api_endpoint=${{ secrets.KDI_WEBAPP_WEP_API_ENDPOINT }}"
             "kdi_web_msal_client_id=${{ secrets.KDI_WEBAPP_MSAL_CLIENT_ID }}"
