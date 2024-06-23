@@ -2,7 +2,9 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { FileUploadHandlerEvent } from 'primeng/fileupload';
+import { ClusterService } from 'src/app/_services/cluster.service';
 import { DeploymentService } from 'src/app/_services/deployment.service';
+import { EnvironmentService } from 'src/app/_services/environment.service';
 
 @Component({
     selector: 'app-add-microservice-yaml',
@@ -10,7 +12,6 @@ import { DeploymentService } from 'src/app/_services/deployment.service';
     styleUrl: './add-microservice-yaml.component.scss'
 })
 export class AddMicroserviceYamlComponent {
-
     uploadedFiles: File[] = [];
     environmentID!: string;
     messages = {
@@ -19,17 +20,49 @@ export class AddMicroserviceYamlComponent {
         error: []
     };
     microservices = [];
+    namespaces: string[] = [];
+    namespace: string | undefined;
+    selectedNamespace: string | undefined;
+    inputNamespace: string | undefined;
     @ViewChild('overlay') overlay!: ElementRef;
 
     constructor(
         private route: ActivatedRoute,
         private deploymentService: DeploymentService,
-        private messageService: MessageService
+        private messageService: MessageService,
+        private environmentService: EnvironmentService,
+        private clusterService: ClusterService,
     ) { }
 
     ngOnInit() {
         this.route.params.subscribe(params => {
             this.environmentID = params['id'];
+        });
+        // this.loadNamespaces();
+        this.namespaces = [
+            "default",
+            "kube-system",
+            "kube-public",
+        ]
+    }
+
+    loadNamespaces() {
+        this.environmentService.getEnvironmentDetails(this.environmentID).subscribe({
+            next: (resp: any) => {
+                this.clusterService.getNamespaces(resp.environment.ClusterID).subscribe({
+                    next: (resp: any) => {
+                        this.namespaces = resp.namespaces;
+                        console.log("Response", resp);
+                    },
+                    error: (error) => {
+                        console.log('Error getting namespaces', error);
+                        this.messageService.add({ severity: 'error', summary: 'Failed to get namespaces', detail: error.error.message });
+                    }
+                });
+            },
+            error: (error) => {
+                console.log('Error getting namespaces', error);
+            }
         });
     }
 
@@ -39,7 +72,7 @@ export class AddMicroserviceYamlComponent {
             this.uploadedFiles.push(file);
         }
         this.overlay.nativeElement.style.display = 'block';
-        this.deploymentService.addDeploymentWithYaml(this.environmentID, this.uploadedFiles).subscribe({
+        this.deploymentService.addDeploymentWithYaml(this.environmentID, this.uploadedFiles, this.namespace).subscribe({
             next: (resp: any) => {
                 this.messages = resp.messages;
                 this.microservices = resp.microservices;
@@ -55,8 +88,6 @@ export class AddMicroserviceYamlComponent {
                 }
                 if (error.error) {
                     this.messages = error.error.messages;
-                }
-                if (error.error) {
                     this.microservices = error.error.microservices;
                 }
                 if (this.messages && !this.messages.success || this.messages.success.length === 0) {
@@ -70,6 +101,21 @@ export class AddMicroserviceYamlComponent {
                 // See if we will clear the file upload or not
             }
         });
+    }
 
+    applyNamespace() {
+        console.log("selectedNamespace", this.selectedNamespace);
+        console.log("namespace", this.namespace);
+        if (this.selectedNamespace) {
+            this.namespace = this.selectedNamespace;
+        } else if (this.inputNamespace) {
+            this.namespace = this.inputNamespace;
+        }
+    }
+
+    resetNamespaceSelection() {
+        this.selectedNamespace = undefined;
+        this.inputNamespace = undefined;
+        this.namespace = undefined;
     }
 }

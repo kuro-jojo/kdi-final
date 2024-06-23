@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -10,18 +10,20 @@ import { ClusterService } from 'src/app/_services/cluster.service';
 import { TeamspaceService } from 'src/app/_services/teamspace.service';
 
 @Component({
-    selector: 'app-add-local-cluster',
+    selector: 'app-add-openshift-cluster',
     standalone: false,
-    templateUrl: './local-cluster.component.html',
-    styleUrl: './local-cluster.component.css'
+    templateUrl: './openshift-cluster.component.html',
+    styleUrl: './openshift-cluster.component.css'
 })
-export class AddLocalClusterComponent {
+export class AddOpenshiftClusterComponent {
+    @ViewChild('overlay') overlay!: ElementRef;
     isEditMode: boolean = false;
     clusterForm: FormGroup;
     submitted: boolean = false;
     addLoading: boolean = false;
     editLoading: boolean = false;
     revokeLoading: boolean = false;
+    testLoading: boolean = false;
     cluster: Cluster;
     teamspaces!: Teamspace[];
 
@@ -38,6 +40,7 @@ export class AddLocalClusterComponent {
         this.cluster = {
             ID: '',
             Name: '',
+            Type: 'openshift',
             Description: '',
             Address: '',
             Port: "",
@@ -53,13 +56,16 @@ export class AddLocalClusterComponent {
         this.clusterForm = this.formBuilder.group({
             Name: ['', Validators.required],
             Description: [''],
-            Address: ['', [Validators.required, Validators.pattern('^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')]],
+            Type: 'openshift',
+            //TODO : check regex
+            Address: ['', [Validators.required, Validators.pattern(/^(https?:\/\/)?[a-z\d.-]+(\.[a-z]{2,6})?(\/[^\s:]*)?$/)]],
             Port: ['', Validators.pattern('^(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])')],
             Token: ['', Validators.required],
             selectedTeamspaces: [[], Validators.required],
             forTeamspace: ['no', Validators.required]
         });
         if (this.isEditMode) {
+
             this.clusterService.getClusterById(this.cluster.ID, true)
                 .pipe(first())
                 .subscribe({
@@ -78,6 +84,9 @@ export class AddLocalClusterComponent {
                             );
                         } else {
                             this.formControls['forTeamspace'].setValue('no');
+                        }
+                        if (this.cluster.Type != 'openshift') {
+                            this.router.navigateByUrl('clusters');
                         }
                     },
                     error: (error) => {
@@ -103,6 +112,7 @@ export class AddLocalClusterComponent {
             ...cluster, ...{
                 Name: this.clusterForm.value.Name,
                 Description: this.clusterForm.value.Description,
+                Type: "openshift",
                 Address: this.clusterForm.value.Address,
                 Port: this.clusterForm.value.Port,
                 Token: this.clusterForm.value.Token,
@@ -169,6 +179,30 @@ export class AddLocalClusterComponent {
         }
     }
 
+    testConnection() {
+        console.log("clusterForm : ", this.clusterForm.value);
+        
+        if (this.formControls['Address'].valid && this.formControls['Port'].valid && this.formControls['Token'].valid){
+            this.testLoading = true;
+            this.overlay.nativeElement.style.display = 'block';
+
+            this.clusterService.testConnection(this.clusterForm.value)
+                .pipe(first())
+                .subscribe({
+                    next: (resp) => {
+                        this.overlay.nativeElement.style.display = 'none';
+                        this.messageService.add({ severity: 'success', summary: "Connection successful", detail: ' ' });
+                        this.testLoading = false;
+                    },
+                    error: (error) => {
+                        this.overlay.nativeElement.style.display = 'none';
+                        this.messageService.add({ severity: 'error', summary: "Connection failed", detail: error.error.message || "Error testing connection" });
+                        this.testLoading = false;
+                        console.error("Error testing connection :", error.error.message);
+                    }
+                })
+        }
+    }
 
     cancel() {
         this.location.back();

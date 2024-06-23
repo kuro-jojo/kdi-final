@@ -32,17 +32,6 @@
                     </a>
                 </div>
                 <div class="col">
-                    <a [routerLink]="['gke']">
-                        <div class="card h-100 mb-3 border-primary cluster-type">
-                            <img src="assets/img/gke-logo.svg" class="card-img-top mt-3 cluster-type-img" alt="...">
-                            <div class="card-body">
-                                <h5 class="card-title text-center">GKE cluster</h5>
-                                <p class="card-text">Add a kubernetes cluster hosted on Google Cloud platform</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col">
                     <a [routerLink]="['openshift']">
                         <div class="card h-100 mb-3 border-primary cluster-type">
                             <img src="assets/img/openshift-logo.svg" class="card-img-top mt-3 cluster-type-img"
@@ -50,6 +39,17 @@
                             <div class="card-body">
                                 <h5 class="card-title text-center">Openshift cluster</h5>
                                 <p class="card-text">Add a kubernetes cluster hosted on Openshift</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a [routerLink]="['gke']">
+                        <div class="card h-100 mb-3 border-primary cluster-type">
+                            <img src="assets/img/gke-logo.svg" class="card-img-top mt-3 cluster-type-img" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title text-center">GKE cluster</h5>
+                                <p class="card-text">Add a kubernetes cluster hosted on Google Cloud platform</p>
                             </div>
                         </div>
                     </a>

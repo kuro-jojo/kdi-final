@@ -16,11 +16,14 @@ export class DeploymentService {
         private cacheService: CacheService, // TODO
     ) { }
 
-    addDeploymentWithYaml(environmentID: string, files: File[]): Observable<any> {
+    addDeploymentWithYaml(environmentID: string, files: File[], namespace: string | undefined = undefined): Observable<any> {
         const formData = new FormData();
         files.forEach(file => {
             formData.append('files', file);
         });
+        if (namespace) {
+            formData.append('namespace', namespace);
+        }
         return this.http.post<any>(this.apiUrl + '/' + environmentID + this.microservicesWithYaml, formData)
     }
 }

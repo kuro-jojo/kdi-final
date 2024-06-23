@@ -32,6 +32,9 @@ const (
 	// Deployment roles
 	CreateDeploymentRole = "CREATE_DEPLOYMENT"
 	DeleteDeploymentRole = "DELETE_DEPLOYMENT"
+
+	// Namespace roles
+	ListNamespacesRole = "LIST_NAMESPACES"
 )
 
 func GetRoles() []string {
@@ -59,6 +62,8 @@ func GetRoles() []string {
 
 		CreateDeploymentRole,
 		DeleteDeploymentRole,
+
+		ListNamespacesRole,
 	}
 }
 

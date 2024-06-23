@@ -1,9 +1,13 @@
+<p-toast />
+<div class="overlay" #overlay>
+    <p-progressSpinner ariaLabel="loading" class="loader" />
+    <p class="loader loader-text text-white">Please wait a moment. We are connecting to your cluster ...</p>
+</div>
 <app-navbar></app-navbar>
 <div class="row">
     <!-- Sidebar -->
     <div class="col-md-3">
         <app-sidebar></app-sidebar>
-        <p-toast />
     </div>
 
     <div class="col-md-8">
@@ -16,12 +20,12 @@
                         <li class="breadcrumb-item"><a [routerLink]="['/clusters']">Clusters</a></li>
                         <li *ngIf="!isEditMode" class="breadcrumb-item"><a [routerLink]="['/clusters/add']">Add</a></li>
                         <li *ngIf="isEditMode" class="breadcrumb-item active">Edit</li>
-                        <li *ngIf="!isEditMode" class="breadcrumb-item active">Local</li>
+                        <li *ngIf="!isEditMode" class="breadcrumb-item active">OpenShift</li>
                     </ol>
                 </nav>
             </div>
 
-            <h2 *ngIf="!isEditMode" class="mb-4 text-center">Add a new kubernetes cluster</h2>
+            <h2 *ngIf="!isEditMode" class="mb-4 text-center">Add a new openshift cluster</h2>
             <h2 *ngIf="isEditMode" class="mb-4 text-center">Edit your cluster</h2>
 
             <div class="card col-6 mx-auto p-3">
@@ -41,14 +45,17 @@
                                 formControlName="Description"></textarea>
                         </div>
                         <div class="col-12">
-                            <label for="ipAddress" class="form-label">IP Address</label>
-                            <input type="text" class="form-control" id="ipAddress" placeholder="192.1.1.2"
+                            <label for="ipAddress" class="form-label">Kubernetes API address</label>
+                            <input type="text" class="form-control" id="ipAddress"
+                                placeholder="https://api.openshiftapps.com"
                                 [ngClass]="{ 'is-invalid': submitted && formControls['Address'].errors }"
                                 formControlName="Address">
                             <div *ngIf="submitted && formControls['Address'].errors" class="invalid-feedback d-block">
-                                <div *ngIf="formControls['Address'].errors['required']">Please enter an IP address
+                                <div *ngIf="formControls['Address'].errors['required']">Please enter an API
+                                    address
                                 </div>
-                                <div *ngIf="formControls['Address'].errors['pattern']">Please a valid IP address
+                                <div *ngIf="formControls['Address'].errors['pattern']">Please a valid API
+                                    address
                                 </div>
                             </div>
                         </div>
@@ -102,8 +109,8 @@
                             </div>
                         </div>
                         <div class="text-center">
-                            <button *ngIf="!isEditMode" type="submit" class="btn btn-outline-success"><span
-                                    *ngIf="addLoading"
+                            <button *ngIf="!isEditMode" type="submit" class="btn btn-outline-success"
+                                style="margin-right: 1rem;"><span *ngIf="addLoading"
                                     class="spinner-border spinner-border-sm mr-1"></span>Create</button>
                             <button *ngIf="isEditMode" type="submit" class="btn btn-outline-success"
                                 style="margin-right: 1rem;"><span *ngIf="editLoading"
@@ -111,9 +118,13 @@
                             <button *ngIf="isEditMode" type="button" class="btn btn-danger" style="margin-right: 1rem;"
                                 (click)="revokeCluster()"><span *ngIf="revokeLoading"
                                     class="spinner-border spinner-border-sm mr-1"></span>Revoke</button>
-                            <button *ngIf="!isEditMode" type="reset" class="btn btn-secondary">Reset</button>
+                            <button *ngIf="!isEditMode" type="reset" class="btn btn-secondary"
+                                style="margin-right: 1rem;">Reset</button>
                             <button *ngIf="isEditMode" type="button" class="btn btn-outline-secondary"
-                                (click)="cancel()">Cancel</button>
+                                style="margin-right: 1rem;" (click)="cancel()">Cancel</button>
+                            <button *ngIf="clusterForm.valid || isEditMode" type="button" class="btn btn-outline-primary"
+                                (click)="testConnection()"><span *ngIf="testLoading"
+                                    class="spinner-border spinner-border-sm mr-1"></span>Test Connection </button>
                         </div>
 
                     </form>

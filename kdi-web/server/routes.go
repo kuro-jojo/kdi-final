@@ -74,6 +74,7 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 		clusters := dashboard.Group("clusters")
 		{
 			clusters.POST("", controllers.AddCluster)
+			clusters.POST("/test", controllers.TestConnectionToCluster)
 			clusters.GET("owned", controllers.GetClustersByCreator)
 			clusters.GET(":id", controllers.GetClusterByIDAndCreator)
 			clusters.GET("Name/:id", controllers.GetClusterName)
@@ -81,6 +82,7 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 			clusters.DELETE(":id", controllers.DeleteCluster)
 
 			clusters.GET(":id/environments", controllers.GetEnvironmentsByCluster)
+			clusters.GET(":id/namespaces", controllers.GetNamespacesFromCluster)
 		}
 
 		namespaces := dashboard.Group("namespaces")

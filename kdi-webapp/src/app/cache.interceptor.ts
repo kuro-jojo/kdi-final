@@ -32,7 +32,6 @@ export class CacheInterceptor implements HttpInterceptor {
 
         if (cachedData) {
             if (this.cacheService.isExpired(cachedData)) {
-                console.log("Cache expired", key);
                 this.cacheService.delete(key);
                 return next.handle(req)
             }

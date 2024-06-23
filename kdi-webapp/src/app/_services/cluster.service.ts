@@ -16,6 +16,10 @@ export class ClusterService {
         private cacheService: CacheService,
     ) { }
 
+    testConnection(cluster: Cluster): Observable<any> {
+        return this.http.post<Cluster>(this.apiUrl + '/test', cluster)
+    }
+
     addCluster(cluster: Cluster): Observable<any> {
         return this.http.post<Cluster>(this.apiUrl, cluster).pipe(
             tap(() => {
@@ -54,6 +58,11 @@ export class ClusterService {
 
     getClusterNameById(id: string): Observable<any> {
         return this.http.get<any>(this.apiUrl + '/Name/' + id)
+    }
+
+
+    getNamespaces(id: string): Observable<any> {
+        return this.http.get<any>(this.apiUrl + '/' + id + '/namespaces')
     }
 
     hasExpired(cluster: Cluster): boolean {

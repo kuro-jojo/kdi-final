@@ -17,18 +17,19 @@
                     <nav>
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a [routerLink]="['/']">Home</a></li>
-                            <li class="breadcrumb-item"><a [routerLink]="['/environments', environmentID]">Environment</a></li>
+                            <li class="breadcrumb-item"><a
+                                    [routerLink]="['/environments', environmentID]">Environment</a></li>
                             <li class="breadcrumb-item active">Deploy with yaml files</li>
                         </ol>
                     </nav>
                 </div><!-- End Page Title -->
+                <p-toast />
+
 
                 <div class="card flex justify-content-center text-center">
-                    <p-toast />
                     <p-fileUpload customUpload="true" uploadStyleClass="mx-2 upload-btn" uploadLabel="Deploy now"
                         cancelStyleClass="cancel-btn" (uploadHandler)="onUpload($event)" [multiple]="true"
                         accept=".yaml, .yml" maxFileSize="2000000">
-                        <p>Drag and drop files to here to upload.</p>
                         <ng-template pTemplate="content">
                             <div
                                 *ngIf="messages && ((messages.error && messages.error) || (messages.success && messages.success) ||(messages.info && messages.info))">
@@ -46,6 +47,22 @@
                             </div>
                         </ng-template>
                     </p-fileUpload>
+                </div>
+                <div class="">
+                    <p class="h5">Choose a namespace for your deployments.</p> <small>(Note that will be applied to all
+                        deployments)</small><br>
+                    <div class="col-md-12 m-2 d-flex align-items-center">
+
+                        <p-dropdown [options]="namespaces" [(ngModel)]="selectedNamespace"
+                            placeholder="Choose a namespace" [showClear]="true" />
+                        <p class="m-2">or</p>
+                        <input type="text" pInputText [(ngModel)]="inputNamespace" variant="filled" />
+                        <p-button label="Apply" [outlined]="true" severity="primary" class="m-3"
+                            (onClick)="applyNamespace()" [disabled]="!inputNamespace && !selectedNamespace" />
+                        <p-button label="Reset" severity="contrast" class="m-3" (onClick)="resetNamespaceSelection()"
+                            *ngIf="namespace" />
+
+                    </div>
                 </div>
             </main>
 
