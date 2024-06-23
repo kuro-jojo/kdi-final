@@ -7,7 +7,7 @@
             <p-toast />
         </div>
 
-        <div class="col-md-8">
+        <div class="col-md-9">
             <main id="main" class="main">
                 <p-toast />
                 <div class="pagetitle">
@@ -57,12 +57,12 @@
                                     ?element.Description:"No description"}} </td>
                             </ng-container>
 
-                            <ng-container matColumnDef="IpAddress">
+                            <ng-container matColumnDef="Address">
                                 <th mat-header-cell *matHeaderCellDef mat-sort-header
-                                    sortActionDescription="Sort by ip address">
-                                    IP Address
+                                    sortActionDescription="Sort by address">
+                                    Address
                                 </th>
-                                <td mat-cell *matCellDef="let element"> {{element.IpAddress}} </td>
+                                <td mat-cell *matCellDef="let element"> {{element.Address}} </td>
                             </ng-container>
 
                             <ng-container matColumnDef="Port">
@@ -71,6 +71,14 @@
                                     Port
                                 </th>
                                 <td mat-cell *matCellDef="let element"> {{element.Port == 0 ? "-":element.Port}} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="Type">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header
+                                    sortActionDescription="Sort by type">
+                                    Type
+                                </th>
+                                <td mat-cell *matCellDef="let element"> {{element.Type ?element.Type : "Local"}} </td>
                             </ng-container>
 
                             <ng-container matColumnDef="CreatedAt">
@@ -94,8 +102,8 @@
                             </ng-container>
 
                             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                            <tr mat-row (click)="showClusterDetails(row)"
-                                *matRowDef="let row; columns: displayedColumns;"></tr>
+                            <tr mat-row (click)="editCluster(row)" *matRowDef="let row; columns: displayedColumns;">
+                            </tr>
                         </table>
                         <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons
                             aria-label="Select page of clusters">

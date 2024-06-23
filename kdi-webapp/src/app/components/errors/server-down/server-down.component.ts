@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
         <main class="container d-flex justify-content-center align-items-center flex-column text-center">
             <h1>Woops! <br> Something went wrong</h1>
             <div>
-                <p>Our backend is currently down .</p>
+                <p>Our servers are currently down.</p>
             </div>
 
             <button (click)="reload()">Let's try again</button>

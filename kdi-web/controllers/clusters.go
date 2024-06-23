@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -17,12 +19,97 @@ type ClusterForm struct {
 	ID          string   `json:"id"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
-	IpAddress   string   `json:"ipAddress"`
+	Type        string   `json:"type"`
+	Address     string   `json:"address"`
 	Port        string   `json:"port"`
 	Token       string   `json:"token"`
 	Teamspaces  []string `json:"teamspaces"`
 	IsGlobal    bool     `json:"isGlobal"`
 	CreatedAt   time.Time
+}
+
+func TestConnectionToCluster(c *gin.Context) {
+	log.Println("Testing connection to cluster...")
+	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
+
+	var clusterForm ClusterForm
+	if c.BindJSON(&clusterForm) != nil {
+		log.Printf("Invalid form : %v", c.BindJSON(&clusterForm).Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form"})
+		return
+	}
+
+	if clusterFormIsInValid(clusterForm) {
+		log.Println("Invalid form fields")
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form fields"})
+		return
+	}
+
+	cluster := models.Cluster{
+		Address: clusterForm.Address,
+		Port:    clusterForm.Port,
+	}
+	exp, err := GetTokenExpirationDate(clusterForm.Token)
+	if err != nil {
+		log.Printf("Error getting token expiration date: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	cluster.ExpiryDate = exp
+	token, err := generateClusterJWT(cluster, clusterForm.Token)
+	if err != nil {
+		log.Printf("Error generating cluster token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	cluster.Token = token
+	// Make a request to the kubernetes api
+	req, err := http.NewRequest("GET", kubernetesApiUrl+"/auth", c.Request.Body)
+	if err != nil {
+		log.Printf("Error creating request %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error creating request"})
+		return
+	}
+	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
+	req.Header.Set("Authorization", cluster.Token)
+
+	// Create a client
+	client := &http.Client{
+		Timeout: 60 * time.Second,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error making request %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making request"})
+		return
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Error reading response body %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error reading response body"})
+		return
+	}
+
+	if resp.StatusCode != 200 {
+		message := make(map[string]string)
+		err = json.Unmarshal(body, &message)
+		if err != nil {
+			log.Printf("Error unmarshalling response body %v", err)
+			c.JSON(resp.StatusCode, gin.H{"message": string(body)})
+			return
+		}
+		log.Printf("Error making request : %v", message["message"])
+		c.JSON(resp.StatusCode, message)
+		return
+	}
+
+	log.Println("Connection to cluster successful")
+	c.JSON(http.StatusOK, gin.H{"message": "Connection to cluster successful"})
 }
 
 func AddCluster(c *gin.Context) {
@@ -362,7 +449,7 @@ func setupCluster(driver db.Driver, clusterForm ClusterForm, user models.User) (
 	cluster := models.Cluster{
 		Name:        clusterForm.Name,
 		Description: clusterForm.Description,
-		IpAddress:   clusterForm.IpAddress,
+		Address:     clusterForm.Address,
 		Port:        clusterForm.Port,
 		CreatorID:   user.ID.Hex(),
 		CreatedAt:   clusterForm.CreatedAt,
@@ -404,7 +491,7 @@ func generateClusterJWT(cluster models.Cluster, token string) (string, error) {
 	claims := make(map[string]interface{})
 	claims["sub"] = os.Getenv("KDI_JWT_SUB_FOR_K8S_API")
 	claims["token"] = token
-	claims["addr"] = cluster.IpAddress
+	claims["addr"] = cluster.Address
 	claims["port"] = cluster.Port
 	// TODO: same expiration date as the token
 	claims["exp"] = cluster.ExpiryDate.Unix()
@@ -413,5 +500,6 @@ func generateClusterJWT(cluster models.Cluster, token string) (string, error) {
 }
 
 func clusterFormIsInValid(form ClusterForm) bool {
-	return form.Name == "" || form.IpAddress == "" || form.Token == ""
+	return form.Name == "" || form.Address == "" || form.Token == "" ||
+		(form.Type != models.TypeOpenshift && form.Type != models.TypeGKE && form.Type != models.TypeEKS && form.Type != models.TypeAKS)
 }

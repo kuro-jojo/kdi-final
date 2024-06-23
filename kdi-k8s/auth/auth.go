@@ -80,95 +80,97 @@ func AuthenticateToCluster(c *gin.Context) {
 func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
 	log.Println("Checking connection to the cluster...")
 	var err error
+	var clientset *kubernetes.Clientset
+	var config *rest.Config
 	var code int = http.StatusBadRequest
 	var errReach = fmt.Sprintf("cannot reach the kubernetes cluster at %s:%s - please check the address and the port provided or the status of the server", authRequest.IpAddress, authRequest.Port)
 
-	config, err := authenticateToClusterWithToken(authRequest)
-	if err != nil {
-		log.Printf("error while authenticating to the cluster: %v", err)
-		return code, err
+	// Creating a new config
+	if !strings.HasPrefix("https", authRequest.IpAddress) {
+		authRequest.IpAddress = "https://" + strings.TrimPrefix(authRequest.IpAddress, "http")
 	}
+	// namespaces := strings.Split(strings.TrimSpace(authRequest.Namespaces), ",")
+	addr := authRequest.IpAddress
+	for {
+		if authRequest.Port != "" {
+			addr = fmt.Sprintf("%s:%s", authRequest.IpAddress, authRequest.Port)
+		}
+		log.Printf("------- Authenticating to cluster at %s", addr)
+		config, err = clientcmd.BuildConfigFromFlags(addr, "")
+		if err != nil {
+			log.Printf("error while authenticating to the cluster: %v", err)
+			return code, err
+		}
+		config.BearerToken = authRequest.Token
+		// TODO : remove this line
 
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		log.Printf("error while creating clientset: %v", err)
-		return code, err
-	}
+		config.Insecure = true
 
-	finished := make(chan bool)
-	go func() {
-		finishedServer := make(chan bool)
-		timer := time.NewTimer(ReachK8sServerTimeout)
-		defer timer.Stop()
+		clientset, err = kubernetes.NewForConfig(config)
+		if err != nil {
+			log.Printf("error while creating clientset: %v", err)
+			return code, err
+		}
+
+		finished := make(chan bool)
 		go func() {
-			_, err = clientset.ServerVersion()
-			finishedServer <- true
+			finishedServer := make(chan bool)
+			timer := time.NewTimer(ReachK8sServerTimeout)
+			defer timer.Stop()
+			go func() {
+				_, err = clientset.ServerVersion()
+				finishedServer <- true
+			}()
+			select {
+			case <-finishedServer:
+				if err != nil {
+					if strings.Contains(err.Error(), "credentials") {
+						code = http.StatusUnauthorized
+						err = fmt.Errorf("please provide valid credentials : %v", err)
+					} else if utils.IsNoRouteToHostError(err.Error()) {
+						code = http.StatusBadGateway
+						err = fmt.Errorf(errReach)
+					} else {
+						code = http.StatusBadGateway
+					}
+				} else {
+					err = nil
+					code = http.StatusOK
+				}
+				finished <- true
+			case <-timer.C:
+				log.Println(errReach)
+				err = fmt.Errorf(errReach)
+				code = http.StatusGatewayTimeout
+				finished <- true
+			case <-c.Request.Context().Done():
+				log.Println("request canceled while getting server version")
+				err = fmt.Errorf("request canceled while getting server version")
+				code = http.StatusOK
+				finished <- true
+			}
 		}()
-		select {
-		case <-finishedServer:
-			if err != nil {
-				if strings.Contains(err.Error(), "credentials") {
-					code = http.StatusUnauthorized
-					err = fmt.Errorf("please provide valid credentials : %v", err)
-				} else if utils.IsNoRouteToHostError(err.Error()) {
+		<-finished
+		if err != nil {
+			if authRequest.Port == "" {
+				authRequest.Port = "6443"
+				log.Println("Trying again with port 6443")
+				continue
+			} else {
+				if utils.IsConnexionRefusedError(err.Error()) {
 					code = http.StatusBadGateway
 					err = fmt.Errorf(errReach)
-				} else {
-					code = http.StatusBadGateway
 				}
-			} else {
-				err = nil
-				code = http.StatusOK
+				log.Printf("error while connecting to the cluster: %v", err)
+				return code, fmt.Errorf("error while connecting to the cluster: %v", err)
 			}
-			finished <- true
-		case <-timer.C:
-			log.Println(errReach)
-			err = fmt.Errorf(errReach)
-			code = http.StatusGatewayTimeout
-			finished <- true
-		case <-c.Request.Context().Done():
-			log.Println("request canceled while getting server version")
-			err = fmt.Errorf("request canceled while getting server version")
-			code = http.StatusOK
-			finished <- true
 		}
-	}()
-	<-finished
-	if err != nil {
-		if utils.IsConnexionRefusedError(err.Error()) {
-			code = http.StatusBadGateway
-			err = fmt.Errorf(errReach)
-		}
-		log.Printf("error while connecting to the cluster: %v", err)
-		return code, fmt.Errorf("error while connecting to the cluster: %v", err)
+		break
 	}
-
 	log.Printf("Connected to the cluster at %s", config.Host)
 
 	c.Set("clientset", clientset)
 	return http.StatusOK, nil
-}
-
-func authenticateToClusterWithToken(authRequest AuthRequest) (*rest.Config, error) {
-	if !strings.HasPrefix("https", authRequest.IpAddress) {
-		authRequest.IpAddress = "https://" + strings.TrimPrefix(authRequest.IpAddress, "http")
-	}
-	// can be modified later according to how the data is stored
-	// namespaces := strings.Split(strings.TrimSpace(authRequest.Namespaces), ",")
-	addr := authRequest.IpAddress
-	if authRequest.Port != "" {
-		addr = fmt.Sprintf("%s:%s", authRequest.IpAddress, authRequest.Port)
-	}
-	log.Printf("------- Authenticating to cluster at %s", addr)
-	config, err := clientcmd.BuildConfigFromFlags(addr, "")
-	if err != nil {
-		return nil, err
-	}
-	config.BearerToken = authRequest.Token
-	// TODO : remove this line
-
-	config.Insecure = true
-	return config, nil
 }
 
 func getTokenFromHeader(header http.Header) string {

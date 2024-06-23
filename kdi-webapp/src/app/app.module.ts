@@ -47,6 +47,7 @@ import { CreateEnvironmentComponent } from './components/environments/create-env
 import { EnvironmentDetailsComponent } from './components/environments/create-environment/environment-details/environment-details.component';
 
 import { AddMicroserviceYamlComponent } from './components/microservices/add-microservice-yaml/add-microservice-yaml.component';
+import { MicroserviceDetailsComponent } from './components/microservices/microservice-details/microservice-details.component';
 
 import { MessageModule } from 'primeng/message';
 import { MessagesModule } from 'primeng/messages';
@@ -56,9 +57,12 @@ import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { RippleModule } from 'primeng/ripple';
+import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
+
 import { ErrorCatchingInterceptor } from './error-catching.interceptor';
 import { CacheInterceptor } from './cache.interceptor';
-import { MicroserviceDetailsComponent } from './components/microservices/microservice-details/microservice-details.component';
+import { AddOpenshiftClusterComponent } from './components/clusters/add-cluster/opensfhit/openshift-cluster.component';
 
 export function initializeMsal(msalService: MsalService): () => Promise<void> {
     return () => msalService.instance.initialize();
@@ -77,6 +81,7 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         CreateTeamspaceComponent,
         AddClusterComponent,
         AddLocalClusterComponent,
+        AddOpenshiftClusterComponent,
         CreateProjectComponent,
         ListProjectsComponent,
         ListClustersComponent,
@@ -114,6 +119,8 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         ProgressSpinnerModule,
         RippleModule,
         MessageModule,
+        DropdownModule,
+        InputTextModule,
     ],
     schemas: [
         CUSTOM_ELEMENTS_SCHEMA

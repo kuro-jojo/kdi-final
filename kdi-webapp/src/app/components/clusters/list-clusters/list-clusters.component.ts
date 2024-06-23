@@ -16,7 +16,7 @@ import { ReloadComponent } from 'src/app/component.util';
 })
 
 export class ListClustersComponent {
-    displayedColumns: string[] = ['Name', 'Description', 'IpAddress', 'Port', 'CreatedAt', 'ExpiryDate',];
+    displayedColumns: string[] = ['Name', 'Description', 'Address', 'Port', 'Type', 'CreatedAt', 'ExpiryDate'];
 
     dataSource: MatTableDataSource<Cluster> = new MatTableDataSource<Cluster>();
     @ViewChild(MatPaginator)
@@ -58,13 +58,17 @@ export class ListClustersComponent {
         return days < 3;
     }
 
-    showClusterDetails(row: Cluster) {
-        this.router.navigate(['/clusters/local/' + row.ID + '/edit']);
+    editCluster(row: Cluster) {
+        switch (row.Type) {
+            case "openshift":
+                this.router.navigate(['/clusters/openshift', row.ID, 'edit']);
+                break;
+            default:
+                this.router.navigate(['/clusters/local', row.ID, 'edit']);
+                break;
+        }
     }
 
-    editCluster(row: Cluster) {
-        this.router.navigate(['/clusters/' + row.ID + '/edit']);
-    }
 
     reloadPage() {
         ReloadComponent(true, this.router);

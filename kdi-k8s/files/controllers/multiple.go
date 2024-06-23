@@ -21,6 +21,9 @@ const (
 // CreateMultipleRessources handles the creation request of multiple kubernetes resources from a file
 func CreateMultipleRessources(c *gin.Context) {
 	namespace, exist := c.GetPostForm("namespace")
+	if exist {
+		log.Printf("Setting default namespace to %s", namespace)
+	}
 	type Response struct {
 		Messages      map[string][]string   `json:"messages"`
 		Microservices []models.Microservice `json:"microservices"`
@@ -73,7 +76,7 @@ func CreateMultipleRessources(c *gin.Context) {
 			}
 
 			co, m = objecthandlers.HandleKubeObjectCreation(obj, c)
-			httpResps[co] = append(httpResps[co], m)
+			httpResps[co] = append(httpResps[co], m+" (file : "+file.Filename+")")
 
 			if isDeployment && co == http.StatusCreated {
 				o, ok := obj.(*models.Deployment)

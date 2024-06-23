@@ -26,7 +26,7 @@ import { ServerDownComponent } from './components/errors/server-down/server-down
 import { PageNotFoundComponent } from './components/errors/page-not-found/page-not-found.component';
 import { EnvironmentDetailsComponent } from './components/environments/create-environment/environment-details/environment-details.component';
 import { MicroserviceDetailsComponent } from './components/microservices/microservice-details/microservice-details.component';
-
+import { AddOpenshiftClusterComponent } from './components/clusters/add-cluster/opensfhit/openshift-cluster.component';
 
 
 const routes: Routes = [
@@ -45,7 +45,9 @@ const routes: Routes = [
     { path: "environments/:envId/microservices/:mId", component: MicroserviceDetailsComponent, canActivate: [AuthGuard], title: "Microservice details" },
 
     { path: "clusters/local/:id/edit", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Edit cluster" },
+    { path: "clusters/openshift/:id/edit", component: AddOpenshiftClusterComponent, canActivate: [AuthGuard], title: "Edit cluster" },
     { path: "clusters/add/local", component: AddLocalClusterComponent, canActivate: [AuthGuard], title: "Add new local cluster" },
+    { path: "clusters/add/openshift", component: AddOpenshiftClusterComponent, canActivate: [AuthGuard], title: "Add new openshift cluster" },
     { path: "clusters/add", component: AddClusterComponent, canActivate: [AuthGuard], title: "Add new cluster" },
     { path: "clusters", component: ListClustersComponent, canActivate: [AuthGuard], title: "List of clusters" },
 

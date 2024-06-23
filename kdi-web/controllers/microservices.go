@@ -44,12 +44,16 @@ type MicroserviceUpdateForm struct {
 func CreateMicroserviceWithYaml(c *gin.Context) {
 	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
 
+	var r K8sApiHttpResponse
+	r.Messages = make(map[string][]string)
 	// retrieve the cluster from the environment
 	user, driver := GetUserFromContext(c)
+
 	eId := c.Param("e_id")
 	id, err := primitive.ObjectIDFromHex(eId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid environment ID"})
+		r.Messages["error"] = append(r.Messages["error"], "Invalid environment ID")
+		c.JSON(http.StatusBadRequest, gin.H{"messages": r.Messages})
 		return
 	}
 
@@ -60,7 +64,8 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	err = environment.Get(driver)
 	if err != nil {
 		log.Printf("Error getting environment %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting environment"})
+		r.Messages["error"] = append(r.Messages["error"], "Error getting environment")
+		c.JSON(http.StatusInternalServerError, gin.H{"messages": r.Messages})
 		return
 	}
 
@@ -68,7 +73,8 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	p_id, err := primitive.ObjectIDFromHex(environment.ProjectID)
 	if err != nil {
 		log.Printf("Invalid project ID : %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid project ID"})
+		r.Messages["error"] = append(r.Messages["error"], "Invalid project ID")
+		c.JSON(http.StatusBadRequest, gin.H{"messages": r.Messages})
 		return
 	}
 
@@ -79,43 +85,51 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	err = project.Get(driver)
 	if err != nil {
 		log.Printf("Error getting project %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting project"})
+		r.Messages["error"] = append(r.Messages["error"], "Error getting project")
+		c.JSON(http.StatusBadRequest, gin.H{"messages": r.Messages})
 		return
 	}
-	if project.TeamspaceID == "" && project.CreatorID != user.ID.Hex() {
-		log.Printf("Unauthorized: Not enough privilege to make deployments")
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-		return
+	// Check if the user has enough privilege in the project to make deployments
+	if project.CreatorID != user.ID.Hex() {
+		if project.TeamspaceID == "" && project.CreatorID != user.ID.Hex() {
+			log.Printf("Unauthorized: Cannot make deployments to a project you do not own")
+			r.Messages["error"] = append(r.Messages["error"], "Unauthorized: Cannot make deployments to a project you do not own")
+			c.JSON(http.StatusUnauthorized, gin.H{"messages": r.Messages})
+			return
+		}
+		// Check if the user has enough privilege in the teamspace to make deployments
+		if project.TeamspaceID != "" {
+			t_id, err := primitive.ObjectIDFromHex(project.TeamspaceID)
+			if err != nil {
+				log.Printf("Invalid teamspace ID : %v", err)
+				r.Messages["error"] = append(r.Messages["error"], "Invalid teamspace ID")
+				c.JSON(http.StatusBadRequest, gin.H{"messages": r.Messages})
+				return
+			}
+			teamspace := models.Teamspace{
+				ID: t_id,
+			}
+			err = teamspace.Get(driver)
+			if err != nil {
+				log.Printf("Error getting teamspace %v", err)
+				r.Messages["error"] = append(r.Messages["error"], "Error getting teamspace")
+				c.JSON(http.StatusInternalServerError, gin.H{"messages": r.Messages})
+				return
+			}
+			ok, code, message := MemberHasEnoughPrivilege(driver, []string{models.CreateDeploymentRole}, teamspace, user)
+			if !ok {
+				log.Println(message)
+				r.Messages["error"] = append(r.Messages["error"], message)
+				c.JSON(code, gin.H{"messages": r.Messages})
+				return
+			}
+		}
 	}
-	// Check if the user has enough privilege in the teamspace to make deployments
-	if project.TeamspaceID != "" {
-		t_id, err := primitive.ObjectIDFromHex(project.TeamspaceID)
-		if err != nil {
-			log.Printf("Invalid teamspace ID : %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid teamspace ID"})
-			return
-		}
-		teamspace := models.Teamspace{
-			ID: t_id,
-		}
-		err = teamspace.Get(driver)
-		if err != nil {
-			log.Printf("Error getting teamspace %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting teamspace"})
-			return
-		}
-		ok, code, message := MemberHasEnoughPrivilege(driver, []string{models.CreateDeploymentRole}, teamspace, user)
-		if !ok {
-			log.Println(message)
-			c.JSON(code, gin.H{"message": message})
-			return
-		}
-	}
-
 	// 3. Get the cluster and make a request to the kubernetes api to create the microservice
 	c_id, err := primitive.ObjectIDFromHex(environment.ClusterID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid cluster ID"})
+		r.Messages["error"] = append(r.Messages["error"], "Invalid cluster ID")
+		c.JSON(http.StatusBadRequest, gin.H{"messages": r.Messages})
 		return
 	}
 
@@ -126,12 +140,14 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	err = cluster.Get(driver)
 	if err != nil {
 		log.Printf("Error getting cluster %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting cluster"})
+		r.Messages["error"] = append(r.Messages["error"], "Error getting cluster")
+		c.JSON(http.StatusInternalServerError, gin.H{"messages": r.Messages})
 		return
 	}
 
 	if slices.Contains(cluster.Teamspaces, project.TeamspaceID) {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		r.Messages["error"] = append(r.Messages["error"], "Unauthorized")
+		c.JSON(http.StatusUnauthorized, gin.H{"messages": r.Messages})
 		return
 	}
 
@@ -139,7 +155,8 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	req, err := http.NewRequest("POST", kubernetesApiUrl+"/resources/with-yaml", c.Request.Body)
 	if err != nil {
 		log.Printf("Error creating request %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making deployments"})
+		r.Messages["error"] = append(r.Messages["error"], "Error making deployments on the cluster")
+		c.JSON(http.StatusInternalServerError, gin.H{"messages": r.Messages})
 		return
 	}
 	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
@@ -152,7 +169,8 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Error making deployments %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making deployments"})
+		r.Messages["error"] = append(r.Messages["error"], "Error making deployments on the cluster")
+		c.JSON(http.StatusInternalServerError, gin.H{"messages": r.Messages})
 		return
 	}
 
@@ -161,16 +179,16 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Error reading response body %v", err)
-		c.JSON(resp.StatusCode, gin.H{"message": "Error making deployments"})
+		r.Messages["error"] = append(r.Messages["error"], "Error reading response body")
+		c.JSON(resp.StatusCode, gin.H{"messages": r.Messages})
 		return
 	}
 
-	var r K8sApiHttpResponse
-	r.Messages = make(map[string][]string)
 	err = json.Unmarshal(body, &r)
 	if err != nil {
 		log.Printf("Error unmarshalling response body %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making deployments"})
+		r.Messages["error"] = append(r.Messages["error"], "Error unmarshalling response body")
+		c.JSON(resp.StatusCode, gin.H{"messages": r.Messages, "microservices": r.Microservices})
 		return
 	}
 

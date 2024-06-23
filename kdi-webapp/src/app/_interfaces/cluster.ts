@@ -1,8 +1,9 @@
 export interface Cluster {
-    ID?: string;
+    ID: string;
     Name: string;
     Description?: string;
-    IpAddress: string;
+    Type?: string;
+    Address: string;
     Port?: string;
     Token: string;
     ExpiryDate?: Date;

@@ -13,19 +13,24 @@ import (
 
 const (
 	ClustersColletion = "clusters"
+	TypeOpenshift     = "openshift"
+	TypeGKE           = "gke"
+	TypeEKS           = "eks"
+	TypeAKS           = "aks"
 )
 
 type Cluster struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	Name        string             `bson:"name"`
+	Name        string             `bson:"name,omitempty"`
 	Description string             `bson:"description,omitempty"`
-	IpAddress   string             `bson:"ip_address"`
+	Type        string             `bson:"type,omitempty"` // openshift, gke, eks, aks
+	Address     string             `bson:"address,omitempty"`
 	Port        string             `bson:"port,omitempty"`
-	Token       string             `bson:"token"`
-	CreatorID   string             `bson:"creator_id"`
+	Token       string             `bson:"token,omitempty"`
+	CreatorID   string             `bson:"creator_id,omitempty"`
 	Teamspaces  []string           `bson:"teamspaces,omitempty"` // teamspaces that have access to this cluster (ids)
-	ExpiryDate  time.Time          `bson:"expiry_date"`
-	CreatedAt   time.Time          `bson:"created_at"`
+	ExpiryDate  time.Time          `bson:"expiry_date,omitempty"`
+	CreatedAt   time.Time          `bson:"created_at,omitempty"`
 }
 
 func (c *Cluster) Add(driver db.Driver) error {
