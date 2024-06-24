@@ -45,14 +45,12 @@
                                 formControlName="Description"></textarea>
                         </div>
                         <div class="col-12">
-                            <label for="ipAddress" class="form-label">IP Address</label>
+                            <label for="ipAddress" class="form-label">Address</label>
                             <input type="text" class="form-control" id="ipAddress" placeholder="192.1.1.2"
                                 [ngClass]="{ 'is-invalid': submitted && formControls['Address'].errors }"
                                 formControlName="Address">
                             <div *ngIf="submitted && formControls['Address'].errors" class="invalid-feedback d-block">
-                                <div *ngIf="formControls['Address'].errors['required']">Please enter an IP address
-                                </div>
-                                <div *ngIf="formControls['Address'].errors['pattern']">Please a valid IP address
+                                <div *ngIf="formControls['Address'].errors['required']">Please enter an address
                                 </div>
                             </div>
                         </div>

@@ -55,7 +55,7 @@ export class AddLocalClusterComponent {
         this.clusterForm = this.formBuilder.group({
             Name: ['', Validators.required],
             Description: [''],
-            Address: ['', [Validators.required, Validators.pattern(/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/)]],
+            Address: ['', Validators.required],
             Port: ['', Validators.pattern('^(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])')],
             Token: ['', Validators.required],
             selectedTeamspaces: [[], Validators.required],

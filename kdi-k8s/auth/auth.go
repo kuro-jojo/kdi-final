@@ -86,7 +86,7 @@ func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
 	var errReach = fmt.Sprintf("cannot reach the kubernetes cluster at %s:%s - please check the address and the port provided or the status of the server", authRequest.IpAddress, authRequest.Port)
 
 	// Creating a new config
-	if !strings.HasPrefix("https", authRequest.IpAddress) {
+	if !strings.HasPrefix( authRequest.IpAddress, "https") {
 		authRequest.IpAddress = "https://" + strings.TrimPrefix(authRequest.IpAddress, "http")
 	}
 	// namespaces := strings.Split(strings.TrimSpace(authRequest.Namespaces), ",")
@@ -95,7 +95,7 @@ func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
 		if authRequest.Port != "" {
 			addr = fmt.Sprintf("%s:%s", authRequest.IpAddress, authRequest.Port)
 		}
-		log.Printf("------- Authenticating to cluster at %s", addr)
+		log.Printf("Authenticating to cluster at %s", addr)
 		config, err = clientcmd.BuildConfigFromFlags(addr, "")
 		if err != nil {
 			log.Printf("error while authenticating to the cluster: %v", err)
