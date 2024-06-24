@@ -40,7 +40,6 @@ export class AddOpenshiftClusterComponent {
         this.cluster = {
             ID: '',
             Name: '',
-            Type: 'openshift',
             Description: '',
             Address: '',
             Port: "",
@@ -56,7 +55,6 @@ export class AddOpenshiftClusterComponent {
         this.clusterForm = this.formBuilder.group({
             Name: ['', Validators.required],
             Description: [''],
-            Type: 'openshift',
             //TODO : check regex
             Address: ['', [Validators.required, Validators.pattern(/^(https?:\/\/)?[a-z\d.-]+(\.[a-z]{2,6})?(\/[^\s:]*)?$/)]],
             Port: ['', Validators.pattern('^(0|[1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])')],
@@ -74,7 +72,9 @@ export class AddOpenshiftClusterComponent {
                         this.cluster = resp.cluster;
                         this.clusterForm.patchValue(this.cluster);
 
-                        if ((this.cluster.Teamspaces?.length ?? 0) == this.teamspaces.length) {
+                        if (this.cluster.Teamspaces?.length == 0 || this.cluster.Teamspaces == null) {
+                            this.formControls['forTeamspace'].setValue('no');
+                        } else if ((this.cluster.Teamspaces?.length ?? 0) == this.teamspaces.length) {
                             this.formControls['forTeamspace'].setValue('all');
                             this.formControls['selectedTeamspaces'].setValue(this.teamspaces);
                         } else if ((this.cluster.Teamspaces?.length ?? 0) > 0) {
@@ -82,8 +82,6 @@ export class AddOpenshiftClusterComponent {
                             this.formControls['selectedTeamspaces'].setValue(
                                 this.teamspaces.filter((teamspace: Teamspace) => this.cluster.Teamspaces?.includes(teamspace.ID))
                             );
-                        } else {
-                            this.formControls['forTeamspace'].setValue('no');
                         }
                         if (this.cluster.Type != 'openshift') {
                             this.router.navigateByUrl('clusters');
@@ -120,6 +118,7 @@ export class AddOpenshiftClusterComponent {
                 Teamspaces: this.clusterForm.value.selectedTeamspaces.map((teamspace: Teamspace) => teamspace.ID)
             }
         };
+        console.log("cluster : ", cluster);
         if (this.isEditMode) {
             this.editLoading;
             this.clusterService.editCluster(cluster)

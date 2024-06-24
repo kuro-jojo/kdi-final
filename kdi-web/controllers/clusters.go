@@ -450,6 +450,7 @@ func setupCluster(driver db.Driver, clusterForm ClusterForm, user models.User) (
 		Name:        clusterForm.Name,
 		Description: clusterForm.Description,
 		Address:     clusterForm.Address,
+		Type:        clusterForm.Type,
 		Port:        clusterForm.Port,
 		CreatorID:   user.ID.Hex(),
 		CreatedAt:   clusterForm.CreatedAt,
@@ -501,5 +502,5 @@ func generateClusterJWT(cluster models.Cluster, token string) (string, error) {
 
 func clusterFormIsInValid(form ClusterForm) bool {
 	return form.Name == "" || form.Address == "" || form.Token == "" ||
-		(form.Type != models.TypeOpenshift && form.Type != models.TypeGKE && form.Type != models.TypeEKS && form.Type != models.TypeAKS)
+		(form.Type != models.TypeOpenshift && form.Type != models.TypeGKE && form.Type != models.TypeEKS && form.Type != models.TypeAKS && form.Type != models.TypeOnprem)
 }
