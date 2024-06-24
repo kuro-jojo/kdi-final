@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -16,12 +16,14 @@ import { TeamspaceService } from 'src/app/_services/teamspace.service';
     styleUrl: './local-cluster.component.css'
 })
 export class AddLocalClusterComponent {
+    @ViewChild('overlay') overlay!: ElementRef;
     isEditMode: boolean = false;
     clusterForm: FormGroup;
     submitted: boolean = false;
     addLoading: boolean = false;
     editLoading: boolean = false;
     revokeLoading: boolean = false;
+    testLoading: boolean = false;
     cluster: Cluster;
     teamspaces!: Teamspace[];
 
@@ -169,6 +171,30 @@ export class AddLocalClusterComponent {
         }
     }
 
+    testConnection() {
+        console.log("clusterForm : ", this.clusterForm.value);
+
+        if (this.formControls['Address'].valid && this.formControls['Port'].valid && this.formControls['Token'].valid) {
+            this.testLoading = true;
+            this.overlay.nativeElement.style.display = 'block';
+
+            this.clusterService.testConnection(this.clusterForm.value)
+                .pipe(first())
+                .subscribe({
+                    next: (resp) => {
+                        this.overlay.nativeElement.style.display = 'none';
+                        this.messageService.add({ severity: 'success', summary: "Connection successful", detail: ' ' });
+                        this.testLoading = false;
+                    },
+                    error: (error) => {
+                        this.overlay.nativeElement.style.display = 'none';
+                        this.messageService.add({ severity: 'error', summary: "Connection failed", detail: error.error.message || "Error testing connection" });
+                        this.testLoading = false;
+                        console.error("Error testing connection :", error.error.message);
+                    }
+                })
+        }
+    }
 
     cancel() {
         this.location.back();

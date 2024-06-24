@@ -1,4 +1,8 @@
-<app-navbar></app-navbar>
+<p-toast />
+<div class="overlay" #overlay>
+    <p-progressSpinner ariaLabel="loading" class="loader" />
+    <p class="loader loader-text text-white">Please wait a moment. We are connecting to your cluster ...</p>
+</div><app-navbar></app-navbar>
 <div class="row">
     <!-- Sidebar -->
     <div class="col-md-3">
@@ -114,6 +118,9 @@
                             <button *ngIf="!isEditMode" type="reset" class="btn btn-secondary">Reset</button>
                             <button *ngIf="isEditMode" type="button" class="btn btn-outline-secondary"
                                 (click)="cancel()">Cancel</button>
+                            <button *ngIf="clusterForm.valid || isEditMode" type="button"
+                                class="btn btn-outline-primary" (click)="testConnection()"><span *ngIf="testLoading"
+                                    class="spinner-border spinner-border-sm mr-1"></span>Test Connection </button>
                         </div>
 
                     </form>
