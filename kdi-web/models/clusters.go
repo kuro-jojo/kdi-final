@@ -17,6 +17,7 @@ const (
 	TypeGKE           = "gke"
 	TypeEKS           = "eks"
 	TypeAKS           = "aks"
+	TypeOnprem        = "on-premise"
 )
 
 type Cluster struct {

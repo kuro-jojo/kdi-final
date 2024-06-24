@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, Type, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -70,7 +70,9 @@ export class AddLocalClusterComponent {
                         this.cluster = resp.cluster;
                         this.clusterForm.patchValue(this.cluster);
 
-                        if ((this.cluster.Teamspaces?.length ?? 0) == this.teamspaces.length) {
+                        if (this.cluster.Teamspaces?.length == 0 || this.cluster.Teamspaces == null) {
+                            this.formControls['forTeamspace'].setValue('no');
+                        } else if ((this.cluster.Teamspaces?.length ?? 0) == this.teamspaces.length) {
                             this.formControls['forTeamspace'].setValue('all');
                             this.formControls['selectedTeamspaces'].setValue(this.teamspaces);
                         } else if ((this.cluster.Teamspaces?.length ?? 0) > 0) {
@@ -78,8 +80,6 @@ export class AddLocalClusterComponent {
                             this.formControls['selectedTeamspaces'].setValue(
                                 this.teamspaces.filter((teamspace: Teamspace) => this.cluster.Teamspaces?.includes(teamspace.ID))
                             );
-                        } else {
-                            this.formControls['forTeamspace'].setValue('no');
                         }
                     },
                     error: (error) => {
@@ -104,6 +104,7 @@ export class AddLocalClusterComponent {
         cluster = {
             ...cluster, ...{
                 Name: this.clusterForm.value.Name,
+                Type: 'on-premise',
                 Description: this.clusterForm.value.Description,
                 Address: this.clusterForm.value.Address,
                 Port: this.clusterForm.value.Port,

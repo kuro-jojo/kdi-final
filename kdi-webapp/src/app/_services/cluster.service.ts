@@ -31,7 +31,7 @@ export class ClusterService {
     editCluster(cluster: Cluster): Observable<any> {
         return this.http.patch<Cluster>(this.apiUrl + '/' + cluster.ID, cluster).pipe(
             tap(() => {
-                this.cacheService.deleteAllRelated(this.apiUrl + '/' + cluster.ID);
+                this.cacheService.deleteAllRelated(this.apiUrl);
             })
         );
     }

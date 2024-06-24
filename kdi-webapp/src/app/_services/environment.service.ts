@@ -36,7 +36,7 @@ export class EnvironmentService {
     updateEnvironment(environment: Environment): Observable<any> {
         return this.http.patch<Environment>(this.apiUrl + '/' + environment.ID, environment).pipe(
             tap(() => {
-                this.cacheService.deleteAllRelated(this.apiUrl + '/' + environment.ID);
+                this.cacheService.deleteAllRelated(this.apiUrl);
             })
         );
     }
@@ -64,7 +64,7 @@ export class EnvironmentService {
     updateMicroservice(form: UpdateForm, envId: string, mId: string): Observable<any> {
         return this.http.patch<any>(this.apiUrl + '/' + envId + '/microservices/' + mId, form).pipe(
             tap(() => {
-                this.cacheService.deleteAllRelated(this.apiUrl + '/' + envId + '/microservices/' + mId);
+                this.cacheService.deleteAllRelated(this.apiUrl);
             })
         );
     }

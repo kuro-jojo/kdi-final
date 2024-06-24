@@ -28,7 +28,7 @@ export class ProjectService {
     updateProject(project: Project): Observable<any> {
         return this.http.patch<Project>(this.apiUrl + '/' + project.ID, project).pipe(
             tap(() => {
-                this.cacheService.deleteAllRelated(this.apiUrl + '/' + project.ID);
+                this.cacheService.deleteAllRelated(this.apiUrl);
             })
         );
     }
