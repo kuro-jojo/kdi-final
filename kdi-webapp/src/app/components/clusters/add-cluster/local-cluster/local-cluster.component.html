@@ -1,8 +1,8 @@
-<p-toast />
 <div class="overlay" #overlay>
     <p-progressSpinner ariaLabel="loading" class="loader" />
     <p class="loader loader-text text-white">Please wait a moment. We are connecting to your cluster ...</p>
-</div><app-navbar></app-navbar>
+</div>
+<app-navbar></app-navbar>
 <div class="row">
     <!-- Sidebar -->
     <div class="col-md-3">
@@ -106,8 +106,8 @@
                             </div>
                         </div>
                         <div class="text-center">
-                            <button *ngIf="!isEditMode" type="submit" class="btn btn-outline-success"><span
-                                    *ngIf="addLoading"
+                            <button *ngIf="!isEditMode" type="submit" class="btn btn-outline-success"
+                                style="margin-right: 1rem;"><span *ngIf="addLoading"
                                     class="spinner-border spinner-border-sm mr-1"></span>Create</button>
                             <button *ngIf="isEditMode" type="submit" class="btn btn-outline-success"
                                 style="margin-right: 1rem;"><span *ngIf="editLoading"
@@ -115,12 +115,13 @@
                             <button *ngIf="isEditMode" type="button" class="btn btn-danger" style="margin-right: 1rem;"
                                 (click)="revokeCluster()"><span *ngIf="revokeLoading"
                                     class="spinner-border spinner-border-sm mr-1"></span>Revoke</button>
-                            <button *ngIf="!isEditMode" type="reset" class="btn btn-secondary">Reset</button>
+                            <button *ngIf="!isEditMode" type="reset" class="btn btn-secondary"
+                                style="margin-right: 1rem;">Reset</button>
                             <button *ngIf="isEditMode" type="button" class="btn btn-outline-secondary"
-                                (click)="cancel()">Cancel</button>
-                            <button *ngIf="clusterForm.valid || isEditMode" type="button"
-                                class="btn btn-outline-primary" (click)="testConnection()"><span *ngIf="testLoading"
-                                    class="spinner-border spinner-border-sm mr-1"></span>Test Connection </button>
+                                style="margin-right: 1rem;" (click)="cancel()">Cancel</button>
+                            <button type="button" class="btn btn-outline-primary" (click)="testConnection()"><span
+                                    *ngIf="testLoading" class="spinner-border spinner-border-sm mr-1"></span>Test
+                                connection </button>
                         </div>
 
                     </form>

@@ -122,9 +122,9 @@
                                 style="margin-right: 1rem;">Reset</button>
                             <button *ngIf="isEditMode" type="button" class="btn btn-outline-secondary"
                                 style="margin-right: 1rem;" (click)="cancel()">Cancel</button>
-                            <button *ngIf="clusterForm.valid || isEditMode" type="button" class="btn btn-outline-primary"
-                                (click)="testConnection()"><span *ngIf="testLoading"
-                                    class="spinner-border spinner-border-sm mr-1"></span>Test Connection </button>
+                            <button type="button" class="btn btn-outline-primary" (click)="testConnection()"><span
+                                    *ngIf="testLoading" class="spinner-border spinner-border-sm mr-1"></span>Test
+                                connection </button>
                         </div>
 
                     </form>

@@ -181,8 +181,8 @@ export class AddOpenshiftClusterComponent {
 
     testConnection() {
         console.log("clusterForm : ", this.clusterForm.value);
-        
-        if (this.formControls['Address'].valid && this.formControls['Port'].valid && this.formControls['Token'].valid){
+
+        if (this.formControls['Address'].valid && this.formControls['Port'].valid && this.formControls['Token'].valid) {
             this.testLoading = true;
             this.overlay.nativeElement.style.display = 'block';
 
@@ -201,6 +201,8 @@ export class AddOpenshiftClusterComponent {
                         console.error("Error testing connection :", error.error.message);
                     }
                 })
+        } else {
+            this.messageService.add({ severity: 'info', summary: "Please fill address, port and token fields" });
         }
     }
 

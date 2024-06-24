@@ -39,7 +39,7 @@ func TestConnectionToCluster(c *gin.Context) {
 		return
 	}
 
-	if clusterFormIsInValid(clusterForm) {
+	if clusterForm.Address == "" || clusterForm.Token == "" {
 		log.Println("Invalid form fields")
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form fields"})
 		return
