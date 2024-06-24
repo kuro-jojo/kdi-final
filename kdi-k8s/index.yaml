@@ -3,12 +3,12 @@ entries:
   kdi-k8s:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2024-06-24T00:02:13.403107843Z"
+    created: "2024-06-24T00:50:55.392443252Z"
     description: A Helm chart for Kubernetes
-    digest: 476149cf8cf1c5196af7a422a43af23a435fb095f888969204c5ffc190d98275
+    digest: 030fbf51842d9486d796d8104b81904192296b245e438b26a45eb5138a534b1d
     name: kdi-k8s
     type: application
     urls:
     - kdi-k8s-0.1.0.tgz
     version: 0.1.0
-generated: "2024-06-24T00:02:13.402779561Z"
+generated: "2024-06-24T00:50:55.392122274Z"
