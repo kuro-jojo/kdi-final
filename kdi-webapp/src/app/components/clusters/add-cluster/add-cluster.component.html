@@ -44,6 +44,17 @@
                     </a>
                 </div>
                 <div class="col">
+                    <a [routerLink]="['eks']">
+                        <div class="card h-100 mb-3 border-primary cluster-type">
+                            <img src="assets/img/eks-logo.svg" class="card-img-top mt-3 cluster-type-img" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title text-center">AWS EKS cluster</h5>
+                                <p class="card-text">Add a kubernetes cluster hosted on Amazon AWS platform</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col">
                     <a [routerLink]="['gke']">
                         <div class="card h-100 mb-3 border-primary cluster-type">
                             <img src="assets/img/gke-logo.svg" class="card-img-top mt-3 cluster-type-img" alt="...">

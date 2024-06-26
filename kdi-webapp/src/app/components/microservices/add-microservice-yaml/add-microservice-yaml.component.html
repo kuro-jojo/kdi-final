@@ -59,8 +59,8 @@
                         <input type="text" pInputText [(ngModel)]="inputNamespace" variant="filled" />
                         <p-button label="Apply" [outlined]="true" severity="primary" class="m-3"
                             (onClick)="applyNamespace()" [disabled]="!inputNamespace && !selectedNamespace" />
-                        <p-button label="Reset" severity="contrast" class="m-3" (onClick)="resetNamespaceSelection()"
-                            *ngIf="namespace" />
+                        <p-button label="Reset" severity="contrast" class="m-3"
+                            (onClick)="resetNamespaceSelection()" *ngIf="namespace" />
 
                     </div>
                 </div>

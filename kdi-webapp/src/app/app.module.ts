@@ -17,37 +17,37 @@ import {
 
 import { FileUploadModule } from 'primeng/fileupload';
 
-import { AppRoutingModule } from './app-routing.module';
-import { MSALInstanceFactory } from './auth-config-ms';
+import { AppRoutingModule } from 'src/app/app-routing.module';
+import { MSALInstanceFactory } from 'src/app/auth-config-ms';
 
-import { AuthInterceptor } from './auth-interceptor';
-import { DateagoPipe } from './pipes/date-ago.pipe';
+import { AuthInterceptor } from 'src/app/auth-interceptor';
+import { DateagoPipe } from 'src/app/pipes/date-ago.pipe';
 
-import { AppComponent } from './app.component';
+import { AppComponent } from 'src/app/app.component';
 import { HomeComponent } from 'src/app/components/home/home.component';
 import { LoginComponent } from 'src/app/components/login/login.component';
 import { RegisterComponent } from 'src/app/components/register/register.component';
-import { SignInMicrosoftComponent } from './components/sign-in-microsoft/sign-in-microsoft.component';
-import { NavbarComponent } from './components/navbar/navbar.component';
-import { SidebarComponent } from './components/sidebar/sidebar.component';
+import { SignInMicrosoftComponent } from 'src/app/components/sign-in-microsoft/sign-in-microsoft.component';
+import { NavbarComponent } from 'src/app/components/navbar/navbar.component';
+import { SidebarComponent } from 'src/app/components/sidebar/sidebar.component';
 
-import { AddClusterComponent } from './components/clusters/add-cluster/add-cluster.component';
-import { ListClustersComponent } from './components/clusters/list-clusters/list-clusters.component';
-import { AddLocalClusterComponent } from './components/clusters/add-cluster/local-cluster/local-cluster.component';
+import { AddClusterComponent } from 'src/app/components/clusters/add-cluster/add-cluster.component';
+import { ListClustersComponent } from 'src/app/components/clusters/list-clusters/list-clusters.component';
+import { AddLocalClusterComponent } from 'src/app/components/clusters/add-cluster/local-cluster/local-cluster.component';
 
-import { CreateProjectComponent } from './components/projects/create-project/create-project.component';
-import { CreateTeamspaceComponent } from './components/teamspaces/create-teamspace/create-teamspace.component';
-import { ListTeamspacesComponent } from './components/teamspaces/list-teamspaces/list-teamspaces.component';
-import { ViewTeamspaceComponent } from './components/teamspaces/view-teamspace/view-teamspace.component';
+import { CreateProjectComponent } from 'src/app/components/projects/create-project/create-project.component';
+import { CreateTeamspaceComponent } from 'src/app/components/teamspaces/create-teamspace/create-teamspace.component';
+import { ListTeamspacesComponent } from 'src/app/components/teamspaces/list-teamspaces/list-teamspaces.component';
+import { ViewTeamspaceComponent } from 'src/app/components/teamspaces/view-teamspace/view-teamspace.component';
 
-import { ProjectDetailsComponent } from './components/projects/project-details/project-details.component';
-import { ListProjectsComponent } from './components/projects/list-projects/list-projects.component';
-import { DeploymentWithHelmComponent } from './components/deployment-with-helm/deployment-with-helm.component';
-import { CreateEnvironmentComponent } from './components/environments/create-environment/create-environment.component';
-import { EnvironmentDetailsComponent } from './components/environments/create-environment/environment-details/environment-details.component';
+import { ProjectDetailsComponent } from 'src/app/components/projects/project-details/project-details.component';
+import { ListProjectsComponent } from 'src/app/components/projects/list-projects/list-projects.component';
+import { DeploymentWithHelmComponent } from 'src/app/components/deployment-with-helm/deployment-with-helm.component';
+import { CreateEnvironmentComponent } from 'src/app/components/environments/create-environment/create-environment.component';
+import { EnvironmentDetailsComponent } from 'src/app/components/environments/create-environment/environment-details/environment-details.component';
 
-import { AddMicroserviceYamlComponent } from './components/microservices/add-microservice-yaml/add-microservice-yaml.component';
-import { MicroserviceDetailsComponent } from './components/microservices/microservice-details/microservice-details.component';
+import { AddMicroserviceYamlComponent } from 'src/app/components/microservices/add-microservice-yaml/add-microservice-yaml.component';
+import { MicroserviceDetailsComponent } from 'src/app/components/microservices/microservice-details/microservice-details.component';
 
 import { MessageModule } from 'primeng/message';
 import { MessagesModule } from 'primeng/messages';
@@ -60,9 +60,10 @@ import { RippleModule } from 'primeng/ripple';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 
-import { ErrorCatchingInterceptor } from './error-catching.interceptor';
-import { CacheInterceptor } from './cache.interceptor';
-import { AddOpenshiftClusterComponent } from './components/clusters/add-cluster/opensfhit/openshift-cluster.component';
+import { ErrorCatchingInterceptor } from 'src/app/error-catching.interceptor';
+import { CacheInterceptor } from 'src/app/cache.interceptor';
+import { AddOpenshiftClusterComponent } from 'src/app/components/clusters/add-cluster/opensfhit-cluster/openshift-cluster.component';
+import { AddEksClusterComponent } from 'src/app/components/clusters/add-cluster/eks-cluster/eks-cluster.component';
 
 export function initializeMsal(msalService: MsalService): () => Promise<void> {
     return () => msalService.instance.initialize();
@@ -80,6 +81,7 @@ export function initializeMsal(msalService: MsalService): () => Promise<void> {
         SidebarComponent,
         CreateTeamspaceComponent,
         AddClusterComponent,
+        AddEksClusterComponent,
         AddLocalClusterComponent,
         AddOpenshiftClusterComponent,
         CreateProjectComponent,

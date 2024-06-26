@@ -28,10 +28,16 @@ type Cluster struct {
 	Address     string             `bson:"address,omitempty"`
 	Port        string             `bson:"port,omitempty"`
 	Token       string             `bson:"token,omitempty"`
-	CreatorID   string             `bson:"creator_id,omitempty"`
-	Teamspaces  []string           `bson:"teamspaces,omitempty"` // teamspaces that have access to this cluster (ids)
-	ExpiryDate  time.Time          `bson:"expiry_date,omitempty"`
-	CreatedAt   time.Time          `bson:"created_at,omitempty"`
+
+	// aws eks fields
+	Region      string `bson:"region,omitempty"`
+	AccessKeyID string `bson:"access_key_id,omitempty"`
+	SecretKey   string `bson:"secret_access,omitempty"`
+
+	CreatorID  string    `bson:"creator_id,omitempty"`
+	Teamspaces []string  `bson:"teamspaces,omitempty"` // teamspaces that have access to this cluster (ids)
+	ExpiryDate time.Time `bson:"expiry_date,omitempty"`
+	CreatedAt  time.Time `bson:"created_at,omitempty"`
 }
 
 func (c *Cluster) Add(driver db.Driver) error {

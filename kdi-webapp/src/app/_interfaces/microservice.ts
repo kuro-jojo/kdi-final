@@ -3,7 +3,7 @@ import { Container } from "./container";
 export interface Microservice {
     ID?: string;
     Name?: string;
-    namespace: string;
+    Namespace: string;
     Replicas?: Int16Array;
     Labels?: string[];
     Selectors?: string[];
@@ -20,4 +20,3 @@ export interface Conditions {
     message?: string;
     reason?: string;
 }
-

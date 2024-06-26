@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -16,21 +15,26 @@ import (
 )
 
 type ClusterForm struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Type        string   `json:"type"`
-	Address     string   `json:"address"`
-	Port        string   `json:"port"`
-	Token       string   `json:"token"`
-	Teamspaces  []string `json:"teamspaces"`
-	IsGlobal    bool     `json:"isGlobal"`
-	CreatedAt   time.Time
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+	Address     string `json:"address"`
+	Port        string `json:"port"`
+	Token       string `json:"token"`
+
+	// aws eks fields
+	Region      string `json:"region"`
+	AccessKeyID string `json:"accessKeyID"`
+	SecretKey   string `json:"secretKey"`
+
+	Teamspaces []string `json:"teamspaces"`
+	IsGlobal   bool     `json:"isGlobal"`
+	CreatedAt  time.Time
 }
 
 func TestConnectionToCluster(c *gin.Context) {
 	log.Println("Testing connection to cluster...")
-	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
 
 	var clusterForm ClusterForm
 	if c.BindJSON(&clusterForm) != nil {
@@ -38,25 +42,43 @@ func TestConnectionToCluster(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form"})
 		return
 	}
+	var cluster models.Cluster
 
-	if clusterForm.Address == "" || clusterForm.Token == "" {
-		log.Println("Invalid form fields")
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form fields"})
-		return
+	switch clusterForm.Type {
+	case models.TypeEKS:
+		if clusterForm.Region == "" || clusterForm.AccessKeyID == "" || clusterForm.SecretKey == "" {
+			log.Println("Invalid form fields : missing region, accessKeyID or secretAccess")
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form fields : missing region, accessKeyID or secretAccess"})
+			return
+		}
+		cluster = models.Cluster{
+			Name:        clusterForm.Name,
+			Region:      clusterForm.Region,
+			AccessKeyID: clusterForm.AccessKeyID,
+			SecretKey:   clusterForm.SecretKey,
+			Type:        clusterForm.Type,
+		}
+	default:
+		if clusterForm.Address == "" || clusterForm.Token == "" {
+			log.Println("Invalid form fields")
+			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form fields : missing address or token"})
+			return
+		}
+
+		cluster = models.Cluster{
+			Address: clusterForm.Address,
+			Port:    clusterForm.Port,
+		}
+		exp, err := GetTokenExpirationDate(clusterForm.Token)
+		if err != nil {
+			log.Printf("Error getting token expiration date: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
+		}
+
+		cluster.ExpiryDate = exp
 	}
 
-	cluster := models.Cluster{
-		Address: clusterForm.Address,
-		Port:    clusterForm.Port,
-	}
-	exp, err := GetTokenExpirationDate(clusterForm.Token)
-	if err != nil {
-		log.Printf("Error getting token expiration date: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
-	}
-
-	cluster.ExpiryDate = exp
 	token, err := generateClusterJWT(cluster, clusterForm.Token)
 	if err != nil {
 		log.Printf("Error generating cluster token: %v", err)
@@ -66,32 +88,8 @@ func TestConnectionToCluster(c *gin.Context) {
 
 	cluster.Token = token
 	// Make a request to the kubernetes api
-	req, err := http.NewRequest("GET", kubernetesApiUrl+"/auth", c.Request.Body)
-	if err != nil {
-		log.Printf("Error creating request %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error creating request"})
-		return
-	}
-	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
-	req.Header.Set("Authorization", cluster.Token)
-
-	// Create a client
-	client := &http.Client{
-		Timeout: 60 * time.Second,
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Printf("Error making request %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making request"})
-		return
-	}
-
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("Error reading response body %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error reading response body"})
+	resp, body, ok := MakeRequestToKubernetesAPI(c, cluster, "GET", "/auth", c.Request.Body)
+	if !ok {
 		return
 	}
 
@@ -121,12 +119,6 @@ func AddCluster(c *gin.Context) {
 	if c.BindJSON(&clusterForm) != nil {
 		log.Printf("Invalid form : %v", c.BindJSON(&clusterForm).Error())
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form"})
-		return
-	}
-
-	if clusterFormIsInValid(clusterForm) {
-		log.Println("Invalid form fields")
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form fields"})
 		return
 	}
 
@@ -160,12 +152,6 @@ func UpdateCluster(c *gin.Context) {
 	if c.BindJSON(&clusterForm) != nil {
 		log.Printf("Invalid form : %v", c.BindJSON(&clusterForm).Error())
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form"})
-		return
-	}
-
-	if clusterFormIsInValid(clusterForm) {
-		log.Println("Invalid form fields")
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid form fields"})
 		return
 	}
 
@@ -301,7 +287,7 @@ func GetClusterByIDAndCreator(c *gin.Context) {
 	}
 
 	queryParam := c.Query("token")
-	if queryParam != "" && queryParam == "false" {
+	if cluster.Type != models.TypeEKS && queryParam != "" && queryParam == "false" {
 		// Retreive the cluster token from the JWT token
 		token, err := GetClusterTokenFromJWT(cluster.Token)
 		if err != nil {
@@ -446,15 +432,42 @@ func UserHasRightOnCluster(c *gin.Context, driver db.Driver, cluster models.Clus
 }
 
 func setupCluster(driver db.Driver, clusterForm ClusterForm, user models.User) (models.Cluster, int, string) {
-	cluster := models.Cluster{
+	var cluster models.Cluster
+
+	switch clusterForm.Type {
+	case models.TypeEKS:
+		if clusterForm.Region == "" || clusterForm.AccessKeyID == "" || clusterForm.SecretKey == "" {
+			log.Println("Invalid form fields : missing region, accessKeyID or secretAccess")
+			return models.Cluster{}, http.StatusBadRequest, "Invalid form fields : missing region, accessKeyID or secretAccess"
+		}
+
+	default:
+		if clusterFormIsInValid(clusterForm) {
+			log.Println("Invalid form fields")
+			return models.Cluster{}, http.StatusBadRequest, "Invalid form fields : missing address or token"
+		}
+		exp, err := GetTokenExpirationDate(clusterForm.Token)
+		if err != nil {
+			log.Printf("Error getting token expiration date: %v", err)
+			return models.Cluster{}, http.StatusInternalServerError, err.Error()
+		}
+		cluster.ExpiryDate = exp
+	}
+
+	cluster = models.Cluster{
 		Name:        clusterForm.Name,
 		Description: clusterForm.Description,
-		Address:     clusterForm.Address,
 		Type:        clusterForm.Type,
+		Address:     clusterForm.Address,
 		Port:        clusterForm.Port,
-		CreatorID:   user.ID.Hex(),
-		CreatedAt:   clusterForm.CreatedAt,
-		Teamspaces:  clusterForm.Teamspaces,
+
+		Region:      clusterForm.Region,
+		AccessKeyID: clusterForm.AccessKeyID,
+		SecretKey:   clusterForm.SecretKey,
+
+		CreatorID:  user.ID.Hex(),
+		CreatedAt:  clusterForm.CreatedAt,
+		Teamspaces: clusterForm.Teamspaces,
 	}
 	var err error
 	// if the cluster is global, it means that it is accessible by all the teamspaces the user is in
@@ -473,12 +486,6 @@ func setupCluster(driver db.Driver, clusterForm ClusterForm, user models.User) (
 		}
 	}
 
-	exp, err := GetTokenExpirationDate(clusterForm.Token)
-	if err != nil {
-		log.Printf("Error getting token expiration date: %v", err)
-		return models.Cluster{}, http.StatusInternalServerError, err.Error()
-	}
-	cluster.ExpiryDate = exp
 	token, err := generateClusterJWT(cluster, clusterForm.Token)
 	if err != nil {
 		log.Printf("Error generating cluster token: %v", err)
@@ -490,12 +497,18 @@ func setupCluster(driver db.Driver, clusterForm ClusterForm, user models.User) (
 
 func generateClusterJWT(cluster models.Cluster, token string) (string, error) {
 	claims := make(map[string]interface{})
-	claims["sub"] = os.Getenv("KDI_JWT_SUB_FOR_K8S_API")
+	claims["sub"] = os.Getenv("JWT_SUB_FOR_K8S_API")
 	claims["token"] = token
 	claims["addr"] = cluster.Address
 	claims["port"] = cluster.Port
+	claims["cluster-name"] = cluster.Name
+	claims["access-key-id"] = cluster.AccessKeyID
+	claims["secret-key-id"] = cluster.SecretKey
+	claims["region"] = cluster.Region
 	// TODO: same expiration date as the token
-	claims["exp"] = cluster.ExpiryDate.Unix()
+	if !cluster.ExpiryDate.IsZero() {
+		claims["exp"] = cluster.ExpiryDate.Unix()
+	}
 
 	return GenerateJWT(claims)
 }

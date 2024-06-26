@@ -24,8 +24,12 @@ func GetNamespaces(c *gin.Context) {
 		})
 		return
 	}
-	log.Println("Namespaces found: ", len(namespaces.Items))
+
+	ns := make([]string, 0)
+	for _, namespace := range namespaces.Items {
+		ns = append(ns, namespace.Name)
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"namespaces": namespaces.Items,
+		"namespaces": ns,
 	})
 }

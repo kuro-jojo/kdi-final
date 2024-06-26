@@ -66,6 +66,12 @@ export class ClusterService {
     }
 
     hasExpired(cluster: Cluster): boolean {
+        const expiryDateTimestamp = cluster.ExpiryDate ? new Date(cluster.ExpiryDate).getTime() : 0;
+        const zeroDateTimestamp = new Date("0001-01-01T00:00:00Z").getTime();
+
+        if (expiryDateTimestamp === zeroDateTimestamp) {
+            cluster.ExpiryDate = undefined
+        }
         return cluster.ExpiryDate !== undefined && new Date(cluster.ExpiryDate) < new Date();
     }
 }

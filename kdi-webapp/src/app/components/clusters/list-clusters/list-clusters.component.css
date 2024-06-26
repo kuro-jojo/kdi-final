@@ -57,7 +57,11 @@ a:hover {
 }
 
 h1,
-h2 {
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: "Nunito", sans-serif;
 }
 /* Breadcrumbs */
@@ -84,4 +88,23 @@ h2 {
 .breadcrumb .active {
   color: #51678f;
   font-weight: 600;
+}
+
+.btn-primary {
+  margin-right: 10px;
+}
+
+th.mat-sort-header-sorted {
+  color: black;
+}
+
+.mat-mdc-row .mat-mdc-cell {
+  cursor: pointer;
+}
+.mat-mdc-row:hover .mat-mdc-cell {
+  background-color: #bfd1e0;
+}
+
+.is-expired {
+  background-color: red;
 }

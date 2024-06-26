@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -30,9 +33,9 @@ func GenerateJWT(claims map[string]interface{}) (string, error) {
 		s   string
 	)
 
-	key = []byte(os.Getenv("KDI_JWT_SECRET_KEY"))
+	key = []byte(os.Getenv("JWT_SECRET_KEY"))
 
-	claims["iss"] = os.Getenv("KDI_JWT_ISSUER") // issuer
+	claims["iss"] = os.Getenv("JWT_ISSUER") // issuer
 
 	t = jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims(claims))
 	s, err := t.SignedString(key)
@@ -60,7 +63,7 @@ func RetrieveTokenFromK8sJWT(tokenString string, secretKey string) (*jwt.Token, 
 }
 
 func GetTokenExpirationDate(tokenString string) (time.Time, error) {
-	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("KDI_JWT_SECRET_KEY"))
+	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("JWT_SECRET_KEY"))
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -83,7 +86,7 @@ func GetTokenExpirationDate(tokenString string) (time.Time, error) {
 
 // GetClusterTokenFromJWT returns the cluster token (service account token) from the JWT token string stored in the database
 func GetClusterTokenFromJWT(tokenString string) (string, error) {
-	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("KDI_JWT_SECRET_KEY"))
+	token, err := RetrieveTokenFromK8sJWT(tokenString, os.Getenv("JWT_SECRET_KEY"))
 	if err != nil {
 		return "", err
 	}
@@ -94,4 +97,36 @@ func GetClusterTokenFromJWT(tokenString string) (string, error) {
 		return claims["token"].(string), nil
 	}
 	return "", fmt.Errorf("error while parsing token")
+}
+
+func MakeRequestToKubernetesAPI(c *gin.Context, cluster models.Cluster, method string, endpoint string, rBody io.Reader) (*http.Response, []byte, bool) {
+	req, err := http.NewRequest(method, KubernetesApiUrl+endpoint, rBody)
+	if err != nil {
+		log.Printf("Error creating request %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error creating request"})
+		return nil, nil, false
+	}
+	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
+	req.Header.Set("Authorization", cluster.Token)
+	req.Header.Set("cluster-type", cluster.Type)
+
+	client := &http.Client{
+		Timeout: 60 * time.Second,
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error making request %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making request"})
+		return nil, nil, false
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Error reading response body %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error reading response body"})
+		return nil, nil, false
+	}
+	return resp, body, true
 }

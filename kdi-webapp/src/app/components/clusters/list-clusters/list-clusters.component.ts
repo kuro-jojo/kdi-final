@@ -16,7 +16,7 @@ import { ReloadComponent } from 'src/app/component.util';
 })
 
 export class ListClustersComponent {
-    displayedColumns: string[] = ['Name', 'Description', 'Address', 'Port', 'Type', 'CreatedAt', 'ExpiryDate'];
+    displayedColumns: string[] = ['Name', 'Description', 'Address', 'Port', 'Type', 'AddedAt', 'ExpiryDate'];
 
     dataSource: MatTableDataSource<Cluster> = new MatTableDataSource<Cluster>();
     @ViewChild(MatPaginator)
@@ -32,7 +32,15 @@ export class ListClustersComponent {
         this.clusterService.getOwnedClusters().subscribe({
             next: (resp: any) => {
                 this.dataSource.data = resp.clusters as Cluster[];
-                this.dataSource.paginator = this.paginator;
+                this.dataSource.data.forEach(cluster => {
+                    // Assuming `ExpiryDate` is the date field in each cluster
+                    const expiryDateTimestamp = cluster.ExpiryDate ? new Date(cluster.ExpiryDate).getTime() : 0;
+                    const zeroDateTimestamp = new Date("0001-01-01T00:00:00Z").getTime();
+
+                    if (expiryDateTimestamp === zeroDateTimestamp) {
+                        cluster.ExpiryDate = undefined
+                    }
+                }); this.dataSource.paginator = this.paginator;
                 this.dataSource.sort = this.sort;
             },
             error: (error) => {
@@ -62,6 +70,9 @@ export class ListClustersComponent {
         switch (row.Type) {
             case "openshift":
                 this.router.navigate(['/clusters/openshift', row.ID, 'edit']);
+                break;
+            case "eks":
+                this.router.navigate(['/clusters/eks', row.ID, 'edit']);
                 break;
             default:
                 this.router.navigate(['/clusters/local', row.ID, 'edit']);
