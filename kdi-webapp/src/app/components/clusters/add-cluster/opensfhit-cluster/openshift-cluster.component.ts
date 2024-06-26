@@ -105,19 +105,8 @@ export class AddOpenshiftClusterComponent {
         if (this.clusterForm.invalid) {
             return;
         }
-        let cluster: Cluster = this.cluster;
-        cluster = {
-            ...cluster, ...{
-                Name: this.clusterForm.value.Name,
-                Description: this.clusterForm.value.Description,
-                Type: "openshift",
-                Address: this.clusterForm.value.Address,
-                Port: this.clusterForm.value.Port,
-                Token: this.clusterForm.value.Token,
-                IsGlobal: this.clusterForm.value.forTeamspace == 'all',
-                Teamspaces: this.clusterForm.value.selectedTeamspaces.map((teamspace: Teamspace) => teamspace.ID)
-            }
-        };
+        let cluster: Cluster = this.getClusterToSubmit();
+
         console.log("cluster : ", cluster);
         if (this.isEditMode) {
             this.editLoading;
@@ -154,6 +143,23 @@ export class AddOpenshiftClusterComponent {
                     }
                 })
         }
+    }
+
+    private getClusterToSubmit() {
+        let cluster: Cluster = this.cluster;
+        cluster = {
+            ...cluster, ...{
+                Name: this.clusterForm.value.Name,
+                Description: this.clusterForm.value.Description,
+                Type: "openshift",
+                Address: this.clusterForm.value.Address,
+                Port: this.clusterForm.value.Port,
+                Token: this.clusterForm.value.Token,
+                IsGlobal: this.clusterForm.value.forTeamspace == 'all',
+                Teamspaces: this.clusterForm.value.selectedTeamspaces.map((teamspace: Teamspace) => teamspace.ID)
+            }
+        };
+        return cluster;
     }
 
     revokeCluster() {

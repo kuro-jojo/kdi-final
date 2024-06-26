@@ -100,19 +100,8 @@ export class AddLocalClusterComponent {
         if (this.clusterForm.invalid) {
             return;
         }
-        let cluster: Cluster = this.cluster;
-        cluster = {
-            ...cluster, ...{
-                Name: this.clusterForm.value.Name,
-                Type: 'on-premise',
-                Description: this.clusterForm.value.Description,
-                Address: this.clusterForm.value.Address,
-                Port: this.clusterForm.value.Port,
-                Token: this.clusterForm.value.Token,
-                IsGlobal: this.clusterForm.value.forTeamspace == 'all',
-                Teamspaces: this.clusterForm.value.selectedTeamspaces.map((teamspace: Teamspace) => teamspace.ID)
-            }
-        };
+        let cluster: Cluster = this.getClusterToSubmit();
+
         if (this.isEditMode) {
             this.editLoading;
             this.clusterService.editCluster(cluster)
@@ -150,6 +139,22 @@ export class AddLocalClusterComponent {
         }
     }
 
+    private getClusterToSubmit() {
+        let cluster: Cluster = this.cluster;
+        cluster = {
+            ...cluster, ...{
+                Name: this.clusterForm.value.Name,
+                Type: 'on-premise',
+                Description: this.clusterForm.value.Description,
+                Address: this.clusterForm.value.Address,
+                Port: this.clusterForm.value.Port,
+                Token: this.clusterForm.value.Token,
+                IsGlobal: this.clusterForm.value.forTeamspace == 'all',
+                Teamspaces: this.clusterForm.value.selectedTeamspaces.map((teamspace: Teamspace) => teamspace.ID)
+            }
+        };
+        return cluster;
+    }
     revokeCluster() {
         console.log("Revoking cluster");
         this.revokeLoading = true;

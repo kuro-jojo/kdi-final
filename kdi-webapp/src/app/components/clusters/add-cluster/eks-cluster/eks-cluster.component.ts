@@ -126,20 +126,8 @@ export class AddEksClusterComponent {
         if (this.clusterForm.invalid) {
             return;
         }
-        let cluster: Cluster = this.cluster;
-        cluster = {
-            ...cluster, ...{
-                Name: this.clusterForm.value.Name,
-                Description: this.clusterForm.value.Description,
-                Type: "eks",
-                AccessKeyID: this.clusterForm.value.AccessKeyID,
-                SecretKey: this.clusterForm.value.SecretKey,
-                Region: this.clusterForm.value.selectedRegion,
-                IsGlobal: this.clusterForm.value.forTeamspace == 'all',
-                Teamspaces: this.clusterForm.value.selectedTeamspaces.map((teamspace: Teamspace) => teamspace.ID)
-            }
-        };
-        console.log("cluster : ", cluster);
+        let cluster: Cluster = this.getClusterToSubmit();
+
         if (this.isEditMode) {
             this.editLoading;
             this.clusterService.editCluster(cluster)
@@ -177,6 +165,24 @@ export class AddEksClusterComponent {
         }
     }
 
+    private getClusterToSubmit() {
+        let cluster: Cluster = this.cluster;
+        cluster = {
+            ...cluster, ...{
+                Name: this.clusterForm.value.Name,
+                Description: this.clusterForm.value.Description,
+                Type: "eks",
+                AccessKeyID: this.clusterForm.value.AccessKeyID,
+                SecretKey: this.clusterForm.value.SecretKey,
+                Region: this.clusterForm.value.selectedRegion,
+                IsGlobal: this.clusterForm.value.forTeamspace == 'all',
+                Teamspaces: this.clusterForm.value.selectedTeamspaces.map((teamspace: Teamspace) => teamspace.ID),
+                Token: ''
+            }
+        };
+        return cluster;
+    }
+
     revokeCluster() {
         console.log("Revoking cluster");
         this.revokeLoading = true;
@@ -204,16 +210,8 @@ export class AddEksClusterComponent {
         if (this.formControls['AccessKeyID'].valid && this.formControls['SecretKey'].valid && this.formControls['selectedRegion'].valid) {
             this.testLoading = true;
             this.overlay.nativeElement.style.display = 'block';
-            let cluster: Cluster = this.cluster;
-            cluster = {
-                ...cluster, ...{
-                    Name: this.clusterForm.value.Name,
-                    Type: "eks",
-                    AccessKeyID: this.clusterForm.value.AccessKeyID,
-                    SecretKey: this.clusterForm.value.SecretKey,
-                    Region: this.clusterForm.value.selectedRegion,
-                }
-            };
+            let cluster: Cluster = this.getClusterToSubmit();
+
             this.clusterService.testConnection(cluster)
                 .pipe(first())
                 .subscribe({
