@@ -50,10 +50,15 @@
                             <label for="access-key-id" class="form-label">Access Key ID<i
                                     class="bi bi-question-circle-fill m-1" data-bs-toggle="tooltip"
                                     data-bs-placement="top" title="AWS Access Key ID from IAM > Users."></i></label>
-                            <input type="text" class="form-control" id="access-key-id"
-                                placeholder="AKIAIOSFODNN7EXAMPLE"
-                                [ngClass]="{ 'is-invalid': submitted && formControls['AccessKeyID'].errors }"
-                                formControlName="AccessKeyID">
+                            <div class="d-flex align-items-center">
+                                <input [type]="isAccessKeyVisible ? 'text' : 'password'" class="form-control"
+                                    id="access-key-id" placeholder="AKIAIOSFODNN7EXAMPLE"
+                                    [ngClass]="{ 'is-invalid': submitted && formControls['AccessKeyID'].errors }"
+                                    formControlName="AccessKeyID"> <i
+                                    [class]="isAccessKeyVisible ? 'bi-eye-slash' : 'bi-eye'" class="password"
+                                    (click)="toggleAccessKeyVisibility()"></i>
+                            </div>
+
                             <div *ngIf="submitted && formControls['AccessKeyID'].errors"
                                 class="invalid-feedback d-block">
                                 <div *ngIf="formControls['AccessKeyID'].errors['required']">Please enter the access key
@@ -66,10 +71,14 @@
                             <label for="secret-key" class="form-label">Secret Key<i
                                     class="bi bi-question-circle-fill m-1" data-bs-toggle="tooltip"
                                     data-bs-placement="top" title="AWS Secret Key from IAM > Users."></i></label>
-                            <input type="text" class="form-control" id="secret-key"
-                                placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-                                [ngClass]="{ 'is-invalid': submitted && formControls['SecretKey'].errors }"
-                                formControlName="SecretKey">
+                            <div class="d-flex align-items-center">
+                                <input [type]="isSecretKeyVisible ? 'text' : 'password'" class="form-control"
+                                    id="secret-key" placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                                    [ngClass]="{ 'is-invalid': submitted && formControls['SecretKey'].errors }"
+                                    formControlName="SecretKey"> <i
+                                    [class]="isSecretKeyVisible ? 'bi-eye-slash' : 'bi-eye'" class="password"
+                                    (click)="toggleSecretKeyVisibility()"></i>
+                            </div>
                             <div *ngIf="submitted && formControls['SecretKey'].errors" class="invalid-feedback d-block">
                                 <div *ngIf="formControls['SecretKey'].errors['required']">Please enter the secret key
                                 </div>

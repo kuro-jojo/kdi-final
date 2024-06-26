@@ -28,6 +28,8 @@ export class AddEksClusterComponent {
     cluster: Cluster;
     teamspaces!: Teamspace[];
     regions!: any[]
+    isAccessKeyVisible: boolean = false;
+    isSecretKeyVisible: boolean = false;
 
     constructor(
         private router: Router,
@@ -118,6 +120,13 @@ export class AddEksClusterComponent {
 
     get formControls() { return this.clusterForm.controls; }
 
+    toggleAccessKeyVisibility() {
+        this.isAccessKeyVisible = !this.isAccessKeyVisible;
+    }
+
+    toggleSecretKeyVisibility() {
+        this.isSecretKeyVisible = !this.isSecretKeyVisible;
+    }
     onSubmit() {
         this.submitted = true;
         if (this.clusterForm.value.forTeamspace != 'yes') {

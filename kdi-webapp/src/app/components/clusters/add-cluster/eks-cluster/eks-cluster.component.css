@@ -140,3 +140,8 @@ h6 {
   z-index: 1000;
   cursor: pointer;
 }
+
+.password {
+  margin-left: -30px;
+  cursor: pointer !important;
+}
