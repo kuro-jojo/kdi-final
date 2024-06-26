@@ -10,13 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kuro-jojo/kdi-k8s/utils"
+	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -98,6 +98,7 @@ func AuthenticateToCluster(c *gin.Context) {
 	default:
 		code, err = checkConnection(auth, c)
 	}
+	removeEnvVars()
 
 	if err != nil {
 		c.AbortWithStatusJSON(code, gin.H{"message": err.Error()})
@@ -141,30 +142,36 @@ func getAuthFromRequest(claims jwt.MapClaims, c *gin.Context, auth *BaseAuth) bo
 func checkAWSConnection(eksAuth EKSAuth, c *gin.Context) (int, error) {
 	log.Println("Checking connection to the eks cluster...")
 	var code int = http.StatusBadRequest
+	// set environment variables for AWS
+	os.Setenv("AWS_ACCESS_KEY_ID", eksAuth.AccessKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", eksAuth.SecretKeyID)
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion(eksAuth.Region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(eksAuth.AccessKeyID, eksAuth.SecretKeyID, "")),
+		// config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(eksAuth.AccessKeyID, eksAuth.SecretKeyID, "")),
 	)
+
 	if err != nil {
+		log.Printf("failed to connect to cluster. Reason : failed to load config, %v", err)
 		return code, fmt.Errorf("failed to connect to cluster. Reason : failed to load config, %v", err)
 	}
-
 	// Create an EKS client using the loaded configuration
 	client := eks.NewFromConfig(cfg)
 
 	// Describe the EKS cluster
-	resp, err := client.DescribeCluster(context.TODO(), &eks.DescribeClusterInput{
+	clusterDescription, err := client.DescribeCluster(context.TODO(), &eks.DescribeClusterInput{
 		Name: aws.String(eksAuth.ClusterName),
 	})
 
 	if err != nil {
+		log.Printf("failed to connect to cluster. Reason: failed to describe cluster, %v", err)
 		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to describe cluster, %v", err)
 	}
 
-	cluster := resp.Cluster
+	cluster := clusterDescription.Cluster
 	decodedCert, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
 	if err != nil {
+		log.Printf("failed to connect to cluster. Reason: failed to decode certificate authority, %v", err)
 		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to decode certificate authority, %v", err)
 	}
 
@@ -175,6 +182,7 @@ func checkAWSConnection(eksAuth EKSAuth, c *gin.Context) (int, error) {
 		Session:   nil,
 	})
 	if err != nil {
+		log.Printf("failed to connect to cluster. Reason: failed to get token, %v", err)
 		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to get token, %v", err)
 	}
 
@@ -186,16 +194,33 @@ func checkAWSConnection(eksAuth EKSAuth, c *gin.Context) (int, error) {
 		},
 		BearerToken: tk.Token,
 	}
-
+	log.Printf("Token: %s", tk.Token)
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to create kubernetes client, %v", err)
+	}
+
+	errReach := fmt.Sprintf("cannot reach the eks cluster at %s - please check the status of the server", *cluster.Endpoint)
+
+	err = checkClusterReachability(err, clientset, code, errReach, c)
+	if err != nil {
+		if utils.IsConnexionRefusedError(err.Error()) {
+			code = http.StatusBadGateway
+			err = fmt.Errorf(errReach)
+		}
+		log.Printf("error while connecting to the cluster: %v", err)
+		return code, fmt.Errorf("error while connecting to the cluster: %v", err)
 	}
 
 	log.Printf("Connected to the cluster at %s", *cluster.Endpoint)
 
 	c.Set("clientset", clientset)
 	return http.StatusOK, nil
+}
+
+func removeEnvVars() {
+	os.Unsetenv("AWS_ACCESS_KEY_ID")
+	os.Unsetenv("AWS_SECRET_ACCESS_KEY")
 }
 
 func checkConnection(auth BaseAuth, c *gin.Context) (int, error) {
@@ -233,45 +258,7 @@ func checkConnection(auth BaseAuth, c *gin.Context) (int, error) {
 			return code, err
 		}
 
-		finished := make(chan bool)
-		go func() {
-			finishedServer := make(chan bool)
-			timer := time.NewTimer(ReachK8sServerTimeout)
-			defer timer.Stop()
-			go func() {
-				_, err = clientset.ServerVersion()
-				finishedServer <- true
-			}()
-			select {
-			case <-finishedServer:
-				if err != nil {
-					if strings.Contains(err.Error(), "credentials") {
-						code = http.StatusUnauthorized
-						err = fmt.Errorf("please provide valid credentials : %v", err)
-					} else if utils.IsNoRouteToHostError(err.Error()) {
-						code = http.StatusBadGateway
-						err = fmt.Errorf(errReach)
-					} else {
-						code = http.StatusBadGateway
-					}
-				} else {
-					err = nil
-					code = http.StatusOK
-				}
-				finished <- true
-			case <-timer.C:
-				log.Println(errReach)
-				err = fmt.Errorf(errReach)
-				code = http.StatusGatewayTimeout
-				finished <- true
-			case <-c.Request.Context().Done():
-				log.Println("request canceled while getting server version")
-				err = fmt.Errorf("request canceled while getting server version")
-				code = http.StatusOK
-				finished <- true
-			}
-		}()
-		<-finished
+		err = checkClusterReachability(err, clientset, code, errReach, c)
 		if err != nil {
 			if auth.Port == "" {
 				auth.Port = "6443"
@@ -292,6 +279,51 @@ func checkConnection(auth BaseAuth, c *gin.Context) (int, error) {
 
 	c.Set("clientset", clientset)
 	return http.StatusOK, nil
+}
+
+func checkClusterReachability(err error, clientset *kubernetes.Clientset, code int, errReach string, c *gin.Context) error {
+	finished := make(chan bool)
+	go func() {
+		finishedServer := make(chan bool)
+		timer := time.NewTimer(ReachK8sServerTimeout)
+		defer timer.Stop()
+		go func() {
+			var ver *version.Info
+			ver, err = clientset.ServerVersion()
+			log.Printf("Server version: %+v", ver)
+			finishedServer <- true
+		}()
+		select {
+		case <-finishedServer:
+			if err != nil {
+				if strings.Contains(err.Error(), "credentials") {
+					code = http.StatusUnauthorized
+					err = fmt.Errorf("please provide valid credentials : %v", err)
+				} else if utils.IsNoRouteToHostError(err.Error()) {
+					code = http.StatusBadGateway
+					err = fmt.Errorf(errReach)
+				} else {
+					code = http.StatusBadGateway
+				}
+			} else {
+				err = nil
+				code = http.StatusOK
+			}
+			finished <- true
+		case <-timer.C:
+			log.Println(errReach)
+			err = fmt.Errorf(errReach)
+			code = http.StatusGatewayTimeout
+			finished <- true
+		case <-c.Request.Context().Done():
+			log.Println("request canceled while getting server version")
+			err = fmt.Errorf("request canceled while getting server version")
+			code = http.StatusOK
+			finished <- true
+		}
+	}()
+	<-finished
+	return err
 }
 
 func getTokenFromHeader(header http.Header) string {
