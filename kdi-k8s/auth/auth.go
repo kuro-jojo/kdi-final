@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,27 +10,43 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kuro-jojo/kdi-k8s/utils"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 )
 
 const (
 	ReachK8sServerTimeout = 5 * time.Second
+	TypeEKS               = "eks"
 )
 
-type AuthRequest struct {
-	IpAddress string `json:"addr" binding:"required"`
-	Port      string `json:"port"`
-	Token     string
+type BaseAuth struct {
+	Address string
+	Port    string
+	Token   string
+}
+
+// for AWS EKS cluster
+type EKSAuth struct {
+	ClusterName string
+	AccessKeyID string
+	SecretKeyID string
+	Region      string
 }
 
 // AuthenticateToCluster : Middleware to authenticate to the cluster
 func AuthenticateToCluster(c *gin.Context) {
-	var authRequest AuthRequest
+	var auth BaseAuth
+	var eksAuth EKSAuth
+	clusterType := c.Request.Header.Get("cluster-type")
 
 	tokenString := getTokenFromHeader(c.Request.Header)
 	if tokenString == "" {
@@ -36,39 +54,50 @@ func AuthenticateToCluster(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "No authentication token provided"})
 		return
 	}
+
 	token := retrieveTokenFromJWT(tokenString, c)
 	if token == nil {
 		return
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		if claims["sub"] != os.Getenv("KDI_JWT_SUB_FOR_K8S_API") {
+		if claims["sub"] != os.Getenv("JWT_SUB_FOR_K8S_API") {
 			log.Printf("Unauthorized - invalid sub %v", claims["sub"])
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
 		}
-		if claims["addr"] == "" || claims["token"] == "" {
-			log.Println("Invalid credentials. Please provide ip, (and/or port) and token.")
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials. Please provide ip, (and/or port) and token."})
-			return
-		}
-		c.Set("addr", claims["addr"].(string))
-		authRequest.IpAddress = claims["addr"].(string)
+		// c.Set("addr", claims["addr"].(string))
+		// c.Set("port", claims["port"].(string))
+		// c.Set("token", claims["token"].(string))
+		switch clusterType {
+		case TypeEKS:
 
-		if claims["port"] != nil {
-			c.Set("port", claims["port"].(string))
-			authRequest.Port = claims["port"].(string)
+			// check if the token is valid for the AWS authentication
+			ok := getAWSAuthFromRequest(claims, c, &eksAuth)
+			if !ok {
+				return
+			}
+		default:
+			// check if the token is valid for the base authentication (addr, port, token)
+			ok := getAuthFromRequest(claims, c, &auth)
+			if !ok {
+				return
+			}
 		}
-
-		c.Set("token", claims["token"].(string))
-		authRequest.Token = claims["token"].(string)
 	} else {
-
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
 
-	code, err := checkConnection(authRequest, c)
+	var code int
+	var err error
+
+	switch clusterType {
+	case TypeEKS:
+		code, err = checkAWSConnection(eksAuth, c)
+	default:
+		code, err = checkConnection(auth, c)
+	}
 
 	if err != nil {
 		c.AbortWithStatusJSON(code, gin.H{"message": err.Error()})
@@ -77,23 +106,115 @@ func AuthenticateToCluster(c *gin.Context) {
 	c.Next()
 }
 
-func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
+func getAWSAuthFromRequest(claims jwt.MapClaims, c *gin.Context, auth *EKSAuth) bool {
+	if claims["cluster-name"] == "" || claims["access-key-id"] == "" || claims["secret-key-id"] == "" || claims["region"] == "" {
+		log.Println("Invalid credentials. Please provide cluster-name, access-key-id, secret-key-id and region.")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials. Please provide cluster-name, access-key-id, secret-key-id and region."})
+		return false
+	}
+
+	auth.ClusterName = claims["cluster-name"].(string)
+	auth.AccessKeyID = claims["access-key-id"].(string)
+	auth.SecretKeyID = claims["secret-key-id"].(string)
+	auth.Region = claims["region"].(string)
+	return true
+}
+
+func getAuthFromRequest(claims jwt.MapClaims, c *gin.Context, auth *BaseAuth) bool {
+	if claims["addr"] == "" || claims["token"] == "" {
+		log.Println("Invalid credentials. Please provide ip, (and/or port) and token.")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid credentials. Please provide ip, (and/or port) and token."})
+		return false
+	}
+
+	auth.Address = claims["addr"].(string)
+
+	if claims["port"] != nil {
+
+		auth.Port = claims["port"].(string)
+	}
+
+	auth.Token = claims["token"].(string)
+	return true
+}
+
+func checkAWSConnection(eksAuth EKSAuth, c *gin.Context) (int, error) {
+	log.Println("Checking connection to the eks cluster...")
+	var code int = http.StatusBadRequest
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(eksAuth.Region),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(eksAuth.AccessKeyID, eksAuth.SecretKeyID, "")),
+	)
+	if err != nil {
+		return code, fmt.Errorf("failed to connect to cluster. Reason : failed to load config, %v", err)
+	}
+
+	// Create an EKS client using the loaded configuration
+	client := eks.NewFromConfig(cfg)
+
+	// Describe the EKS cluster
+	resp, err := client.DescribeCluster(context.TODO(), &eks.DescribeClusterInput{
+		Name: aws.String(eksAuth.ClusterName),
+	})
+
+	if err != nil {
+		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to describe cluster, %v", err)
+	}
+
+	cluster := resp.Cluster
+	decodedCert, err := base64.StdEncoding.DecodeString(*cluster.CertificateAuthority.Data)
+	if err != nil {
+		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to decode certificate authority, %v", err)
+	}
+
+	g, _ := token.NewGenerator(false, false)
+	tk, err := g.GetWithOptions(&token.GetTokenOptions{
+		Region:    eksAuth.Region,
+		ClusterID: eksAuth.ClusterName,
+		Session:   nil,
+	})
+	if err != nil {
+		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to get token, %v", err)
+	}
+
+	// create a new kubernetes config
+	kubeConfig := &rest.Config{
+		Host: *cluster.Endpoint,
+		TLSClientConfig: rest.TLSClientConfig{
+			CAData: decodedCert,
+		},
+		BearerToken: tk.Token,
+	}
+
+	clientset, err := kubernetes.NewForConfig(kubeConfig)
+	if err != nil {
+		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to create kubernetes client, %v", err)
+	}
+
+	log.Printf("Connected to the cluster at %s", *cluster.Endpoint)
+
+	c.Set("clientset", clientset)
+	return http.StatusOK, nil
+}
+
+func checkConnection(auth BaseAuth, c *gin.Context) (int, error) {
 	log.Println("Checking connection to the cluster...")
 	var err error
 	var clientset *kubernetes.Clientset
 	var config *rest.Config
 	var code int = http.StatusBadRequest
-	var errReach = fmt.Sprintf("cannot reach the kubernetes cluster at %s:%s - please check the address and the port provided or the status of the server", authRequest.IpAddress, authRequest.Port)
+	var errReach = fmt.Sprintf("cannot reach the kubernetes cluster at %s:%s - please check the address and the port provided or the status of the server", auth.Address, auth.Port)
 
 	// Creating a new config
-	if !strings.HasPrefix( authRequest.IpAddress, "https") {
-		authRequest.IpAddress = "https://" + strings.TrimPrefix(authRequest.IpAddress, "http")
+	if !strings.HasPrefix(auth.Address, "https") {
+		auth.Address = "https://" + strings.TrimPrefix(auth.Address, "http")
 	}
 	// namespaces := strings.Split(strings.TrimSpace(authRequest.Namespaces), ",")
-	addr := authRequest.IpAddress
+	addr := auth.Address
 	for {
-		if authRequest.Port != "" {
-			addr = fmt.Sprintf("%s:%s", authRequest.IpAddress, authRequest.Port)
+		if auth.Port != "" {
+			addr = fmt.Sprintf("%s:%s", auth.Address, auth.Port)
 		}
 		log.Printf("Authenticating to cluster at %s", addr)
 		config, err = clientcmd.BuildConfigFromFlags(addr, "")
@@ -101,7 +222,7 @@ func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
 			log.Printf("error while authenticating to the cluster: %v", err)
 			return code, err
 		}
-		config.BearerToken = authRequest.Token
+		config.BearerToken = auth.Token
 		// TODO : remove this line
 
 		config.Insecure = true
@@ -152,8 +273,8 @@ func checkConnection(authRequest AuthRequest, c *gin.Context) (int, error) {
 		}()
 		<-finished
 		if err != nil {
-			if authRequest.Port == "" {
-				authRequest.Port = "6443"
+			if auth.Port == "" {
+				auth.Port = "6443"
 				log.Println("Trying again with port 6443")
 				continue
 			} else {
@@ -184,7 +305,7 @@ func retrieveTokenFromJWT(tokenString string, c *gin.Context) *jwt.Token {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(os.Getenv("KDI_JWT_SECRET_KEY")), nil
+		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
 	})
 
 	if err != nil {

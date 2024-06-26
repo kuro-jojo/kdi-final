@@ -28,6 +28,7 @@ export const AuthGuard: CanActivateFn = (_route, _state) => {
     }
 
     if (!userService.isAuthentificated || (userService.token && tokenExpired(userService.token))) {
+        userService.logout();
         router.navigateByUrl('/login', { state: { redirect: _state.url } });
         return false;
     }

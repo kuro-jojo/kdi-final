@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"slices"
 	"time"
 
@@ -19,6 +18,7 @@ import (
 const (
 	NameForFilesForm = "files"
 	// TODO: Change this for production
+	KubernetesApiUrl = "http://localhost:8080/api/v1/kubernetes"
 )
 
 type K8sApiHttpResponse struct {
@@ -42,8 +42,7 @@ type MicroserviceUpdateForm struct {
 }
 
 func CreateMicroserviceWithYaml(c *gin.Context) {
-	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
-
+	log.Println("Creating microservice with yaml files ...")
 	var r K8sApiHttpResponse
 	r.Messages = make(map[string][]string)
 	// retrieve the cluster from the environment
@@ -82,6 +81,7 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 		ID: p_id,
 	}
 
+	log.Println("Getting project ...")
 	err = project.Get(driver)
 	if err != nil {
 		log.Printf("Error getting project %v", err)
@@ -152,7 +152,7 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	}
 
 	// Make a request to the kubernetes api
-	req, err := http.NewRequest("POST", kubernetesApiUrl+"/resources/with-yaml", c.Request.Body)
+	req, err := http.NewRequest("POST", KubernetesApiUrl+"/resources/with-yaml", c.Request.Body)
 	if err != nil {
 		log.Printf("Error creating request %v", err)
 		r.Messages["error"] = append(r.Messages["error"], "Error making deployments on the cluster")
@@ -161,6 +161,7 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	}
 	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
 	req.Header.Set("Authorization", cluster.Token)
+	req.Header.Set("cluster-type", cluster.Type)
 
 	// Create a client
 	client := &http.Client{
@@ -192,38 +193,13 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 		return
 	}
 
+	// TODO : Save the microservices in the database even if it already exists in the cluster
 	// 4. Save the microservice in the database
 	for _, m := range r.Microservices {
-		// 4.1 Create the namespace in the database if it does not exist
-		ns := models.Namespace{
-			// The namespace in the microservice object at this point is just the name of the namespace and not the ID
-			Name:      m.NamespaceID,
-			ClusterID: cluster.ID.Hex(),
-		}
 
-		// Check if the namespace exists
-		err = ns.GetByName(driver)
-		if err != nil {
-			if utils.OnNotFoundError(err, "Namespace") != nil || utils.OnNoDocumentsError(err, "Namespace") != nil {
-				log.Printf("Namespace %s does not exist. Creating it", ns.Name)
-				err = ns.Create(driver)
-				if err != nil {
-					// There won't be a duplicate key error here because we already checked if the namespace exists
-					log.Printf("Error creating namespace %s : %v", ns.Name, err)
-					r.Messages["error"] = append(r.Messages["error"], "Error creating namespace "+ns.Name)
-					continue
-				}
-			} else {
-				log.Printf("Error getting namespace %s : %v", ns.Name, err)
-				r.Messages["error"] = append(r.Messages["error"], "Error getting namespace "+ns.Name)
-				continue
-			}
-		}
-
-		// 4.2 Save the microservice
+		// 4.1 Save the microservice
 		m.EnvironmentID = eId
 		m.CreatorID = user.ID.Hex()
-		m.NamespaceID = ns.ID.Hex()
 		m.DeployedAt = time.Now()
 
 		err = m.Create(driver)
@@ -243,6 +219,7 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	if r.Message != "" {
 		r.Messages["error"] = append(r.Messages["error"], r.Message)
 	}
+	log.Println("Microservices created successfully")
 	c.JSON(resp.StatusCode, gin.H{"messages": r.Messages, "microservices": r.Microservices})
 }
 
@@ -311,7 +288,6 @@ func GetMicroservicesByEnvironment(c *gin.Context) {
 }
 
 func UpdateMicroservice(c *gin.Context) {
-	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
 
 	// Prepare the update form
 	var updateForm MicroserviceUpdateForm
@@ -354,25 +330,6 @@ func UpdateMicroservice(c *gin.Context) {
 		return
 	}
 
-	// 2. Get the namespace
-	namespace_id, err := primitive.ObjectIDFromHex(microservice.NamespaceID)
-	if err != nil {
-		log.Printf("Invalid namespace ID : %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid namespace ID"})
-		return
-	}
-
-	n := models.Namespace{
-		ID: namespace_id,
-	}
-
-	err = n.Get(driver)
-	if err != nil {
-		log.Printf("Error getting namespace %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting namespace"})
-		return
-	}
-
 	// 3. Get the cluster and make a request to the kubernetes api to create the microservice
 	c_id, err := primitive.ObjectIDFromHex(environment.ClusterID)
 	if err != nil {
@@ -391,9 +348,6 @@ func UpdateMicroservice(c *gin.Context) {
 		return
 	}
 
-	namespace := n.Name
-	deploymentName := microservice.Name
-
 	// Serialize the updateForm to JSON for the request body
 	updateFormJSON, err := json.Marshal(updateForm)
 	if err != nil {
@@ -402,35 +356,15 @@ func UpdateMicroservice(c *gin.Context) {
 		return
 	}
 
-	// Log the serialized JSON for debugging purposes
-	log.Printf("UpdateForm JSON: %s", updateFormJSON)
-
 	// Make a request to the kubernetes api
-	req, err := http.NewRequest("PATCH", kubernetesApiUrl+"/resources/namespaces/"+namespace+"/deployments/"+deploymentName, bytes.NewBuffer(updateFormJSON))
-	if err != nil {
-		log.Printf("Error creating request %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error updating deployment"})
+	resp, body, ok := MakeRequestToKubernetesAPI(c, cluster, "PATCH", "/resources/namespaces/"+microservice.Namespace+"/deployments/"+microservice.Name, bytes.NewBuffer(updateFormJSON))
+	if !ok {
 		return
 	}
-	req.Header.Set("Content-Type", c.Request.Header.Get("Content-Type"))
-	req.Header.Set("Authorization", cluster.Token)
-
-	// Create a client
-	client := &http.Client{
-		Timeout: 120 * time.Second,
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Printf("Error making deployments %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error making deployments"})
-		return
-	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		log.Printf("Error from Kubernetes API: %v", string(bodyBytes))
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error from Kubernetes API", "details": string(bodyBytes)})
+		log.Printf("Error from Kubernetes API: %v", string(body))
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error from Kubernetes API", "details": string(body)})
 		return
 	}
 

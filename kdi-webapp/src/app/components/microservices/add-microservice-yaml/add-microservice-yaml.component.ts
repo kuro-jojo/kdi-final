@@ -21,9 +21,9 @@ export class AddMicroserviceYamlComponent {
     };
     microservices = [];
     namespaces: string[] = [];
-    namespace: string | undefined;
-    selectedNamespace: string | undefined;
-    inputNamespace: string | undefined;
+    namespace: string | undefined; 
+    selectedNamespace: string | undefined; 
+    inputNamespace: string | undefined; 
     @ViewChild('overlay') overlay!: ElementRef;
 
     constructor(
@@ -38,21 +38,22 @@ export class AddMicroserviceYamlComponent {
         this.route.params.subscribe(params => {
             this.environmentID = params['id'];
         });
-        // this.loadNamespaces();
-        this.namespaces = [
-            "default",
-            "kube-system",
-            "kube-public",
-        ]
+        this.loadNamespaces();
+        // this.namespaces = [
+        //     "default",
+        //     "kube-system",
+        //     "kube-public",
+        // ]
     }
 
     loadNamespaces() {
+        let namespacesToAvoid = ['kube-system', 'kube-public', 'kube-node-lease', 'kube-public', 'kube-system', 'kubernetes-dashboard', 'kube-proxy', 'kube-flannel', 'coredns', 'metrics-server', 'local-path-storage'];
         this.environmentService.getEnvironmentDetails(this.environmentID).subscribe({
             next: (resp: any) => {
                 this.clusterService.getNamespaces(resp.environment.ClusterID).subscribe({
                     next: (resp: any) => {
                         this.namespaces = resp.namespaces;
-                        console.log("Response", resp);
+                        this.namespaces = this.namespaces.filter((namespace: string) => !namespacesToAvoid.includes(namespace));
                     },
                     error: (error) => {
                         console.log('Error getting namespaces', error);
@@ -104,16 +105,15 @@ export class AddMicroserviceYamlComponent {
     }
 
     applyNamespace() {
-        console.log("selectedNamespace", this.selectedNamespace);
-        console.log("namespace", this.namespace);
         if (this.selectedNamespace) {
             this.namespace = this.selectedNamespace;
-        } else if (this.inputNamespace) {
+        }else if (this.inputNamespace) {
             this.namespace = this.inputNamespace;
         }
+        this.messageService.add({ severity: 'info', summary: 'Namespace set to '+ this.namespace + ' for all files!', detail: ' ' });
     }
 
-    resetNamespaceSelection() {
+    resetNamespaceSelection(){
         this.selectedNamespace = undefined;
         this.inputNamespace = undefined;
         this.namespace = undefined;

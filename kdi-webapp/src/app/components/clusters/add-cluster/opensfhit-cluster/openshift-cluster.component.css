@@ -104,9 +104,39 @@ h6 {
   box-shadow: 1px 8px 20px grey;
   padding: 0 !important;
 }
-.cluster-type{
-    transition: box-shadow 0.5s;
+.cluster-type {
+  transition: box-shadow 0.5s;
 }
-.card-text{
-    text-align: center;
+
+.btn-outline-success {
+  margin-right: 10px;
+}
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 100%;
+  text-align: center;
+  font-size: 50px;
+  z-index: 1001;
+}
+
+.loader-text {
+  z-index: 1000;
+  top: 45%;
+  font-size: 25px;
+}
+
+.overlay {
+  position: fixed;
+  display: none;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  cursor: pointer;
 }

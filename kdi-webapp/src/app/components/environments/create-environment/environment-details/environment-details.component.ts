@@ -24,7 +24,7 @@ export class EnvironmentDetailsComponent {
     paginator!: MatPaginator;
     @ViewChild(MatSort)
     sort!: MatSort;
-    displayedColumns: string[] = ['Name', 'Strategy', 'Conditions', 'Replicas', 'actions'];
+    displayedColumns: string[] = ['Name', 'Namespace', 'Strategy', 'Conditions', 'Replicas', 'actions'];
     dataSource: MatTableDataSource<Microservice> = new MatTableDataSource<Microservice>();
 
     envId: string = '';
@@ -44,7 +44,7 @@ export class EnvironmentDetailsComponent {
         private environmentService: EnvironmentService,
         private clusterService: ClusterService,
         private messageService: MessageService,
-        private router: Router    ) {
+        private router: Router) {
     }
 
     ngOnInit() {
@@ -58,11 +58,7 @@ export class EnvironmentDetailsComponent {
         });
     }
 
-    ClickEnv(row: Microservice) {
-        this.router.navigate(['/microservices/' + row.ID]);
-    }
-
-    onEnvClick(id: string) {
+    viewMicroservice(id: string) {
         this.router.navigate(['environments/' + this.envId + '/microservices/' + id]);
     }
 
@@ -104,6 +100,7 @@ export class EnvironmentDetailsComponent {
             .subscribe({
                 next: (resp) => {
                     this.dataSource.data = resp.microservices as Microservice[];
+                    console.log("Microservices: ", this.dataSource.data);
                     this.dataSource.paginator = this.paginator;
                     this.dataSource.sort = this.sort;
                 },

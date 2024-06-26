@@ -85,11 +85,6 @@ func SetupRoutes(group *gin.RouterGroup, driver db.Driver, msalAuth middlewares.
 			clusters.GET(":id/namespaces", controllers.GetNamespacesFromCluster)
 		}
 
-		namespaces := dashboard.Group("namespaces")
-		{
-			namespaces.GET(":n_id", controllers.GetNamespace)
-		}
-
 		environments := dashboard.Group("environments")
 		{
 			environments.POST("", controllers.CreateEnvironment)

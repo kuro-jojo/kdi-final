@@ -38,15 +38,15 @@ type Conditions struct {
 
 // Microservice represents a deployed microservice
 type Microservice struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	Name        string             `bson:"name,omitempty"`
-	NamespaceID string             `json:"namespace" bson:"namespace_id,omitempty"`
-	Replicas    int32              `bson:"replicas,omitempty"`
-	Labels      map[string]string  `bson:"labels,omitempty"`
-	Selectors   map[string]string  `bson:"selectors,omitempty"`
-	Strategy    string             `bson:"strategy,omitempty"` // The deployment strategy used
-	Containers  []Container        `bson:"containers,omitempty"`
-	Conditions  []Conditions       `bson:"conditions,omitempty"`
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	Name       string             `bson:"name,omitempty"`
+	Namespace  string             `bson:"namespace,omitempty"`
+	Replicas   int32              `bson:"replicas,omitempty"`
+	Labels     map[string]string  `bson:"labels,omitempty"`
+	Selectors  map[string]string  `bson:"selectors,omitempty"`
+	Strategy   string             `bson:"strategy,omitempty"` // The deployment strategy used
+	Containers []Container        `bson:"containers,omitempty"`
+	Conditions []Conditions       `bson:"conditions,omitempty"`
 
 	EnvironmentID string    `bson:"environment_id,omitempty"`
 	CreatorID     string    `bson:"creator_id,omitempty"`

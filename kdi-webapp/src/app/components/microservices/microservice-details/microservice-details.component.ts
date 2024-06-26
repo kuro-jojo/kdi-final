@@ -12,7 +12,6 @@ import { Microservice } from 'src/app/_interfaces/microservice';
 import { CacheService } from 'src/app/_services/cache.service';
 import { ClusterService } from 'src/app/_services/cluster.service';
 import { EnvironmentService } from 'src/app/_services/environment.service';
-import { NamespaceService } from 'src/app/_services/namespace.service';
 import { ReloadComponent } from 'src/app/component.util';
 
 @Component({
@@ -54,9 +53,7 @@ export class MicroserviceDetailsComponent {
         private router: Router,
         private environmentService: EnvironmentService,
         private messageService: MessageService,
-        private namespaceService: NamespaceService,
         private fb: FormBuilder,
-        private cacheService: CacheService,
     ) {
         this.updateForm = new FormGroup({});
     }
@@ -102,17 +99,7 @@ export class MicroserviceDetailsComponent {
                         this.labels.data = resp.microservice.Labels
                         this.selectors.data = resp.microservice.Selectors
                         this.microservice = resp.microservice;
-                        this.namespaceService.getNamespace(this.microservice.namespace).subscribe(
-                            {
-                                next: (resp) => {
-                                    this.microservice.namespace = resp.namespace;
-                                    resolve();
-                                },
-                                error: (error: HttpErrorResponse) => {
-                                    console.error("Error loading namespace: ", error.error.message);
-                                    reject(error);
-                                }
-                            })
+
                     },
                     error: (error: HttpErrorResponse) => {
                         this.messageService.add({ severity: 'info', summary: "Failed to fetch microservice. Please try again later." });

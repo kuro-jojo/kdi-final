@@ -62,7 +62,8 @@
                                     sortActionDescription="Sort by address">
                                     Address
                                 </th>
-                                <td mat-cell *matCellDef="let element"> {{element.Address}} </td>
+                                <td mat-cell *matCellDef="let element"> {{!element.Address ? "-": element.Address}}
+                                </td>
                             </ng-container>
 
                             <ng-container matColumnDef="Port">
@@ -81,10 +82,10 @@
                                 <td mat-cell *matCellDef="let element"> {{element.Type ?element.Type : "Unknown"}} </td>
                             </ng-container>
 
-                            <ng-container matColumnDef="CreatedAt">
+                            <ng-container matColumnDef="AddedAt">
                                 <th mat-header-cell *matHeaderCellDef mat-sort-header
                                     sortActionDescription="Sort by creation date">
-                                    Created at
+                                    Added at
                                 </th>
                                 <td mat-cell *matCellDef="let element">{{ element.CreatedAt | date:"MMM dd, yyyy 'at'
                                     hh:mm a" }} </td>
@@ -97,7 +98,8 @@
                                 </th>
                                 <td mat-cell *matCellDef="let element"
                                     [ngClass]="{ 'text-danger': isExpired(element.ExpiryDate), 'text-warning-emphasis': ! isExpired(element.ExpiryDate) && isNearExpiry(element.ExpiryDate) }">
-                                    {{ element.ExpiryDate | date:"MMM dd, yyyy 'at' hh:mm a" }}
+                                    {{ element.ExpiryDate ? (element.ExpiryDate | date:"MMM dd, yyyy 'at' hh:mm a") :
+                                    "-" }}
                                 </td>
                             </ng-container>
 
