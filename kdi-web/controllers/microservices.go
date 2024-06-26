@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"slices"
 	"time"
 
@@ -18,7 +19,6 @@ import (
 const (
 	NameForFilesForm = "files"
 	// TODO: Change this for production
-	KubernetesApiUrl = "http://localhost:8080/api/v1/kubernetes"
 )
 
 type K8sApiHttpResponse struct {
@@ -43,6 +43,7 @@ type MicroserviceUpdateForm struct {
 
 func CreateMicroserviceWithYaml(c *gin.Context) {
 	log.Println("Creating microservice with yaml files ...")
+	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
 	var r K8sApiHttpResponse
 	r.Messages = make(map[string][]string)
 	// retrieve the cluster from the environment
@@ -152,7 +153,7 @@ func CreateMicroserviceWithYaml(c *gin.Context) {
 	}
 
 	// Make a request to the kubernetes api
-	req, err := http.NewRequest("POST", KubernetesApiUrl+"/resources/with-yaml", c.Request.Body)
+	req, err := http.NewRequest("POST", kubernetesApiUrl+"/resources/with-yaml", c.Request.Body)
 	if err != nil {
 		log.Printf("Error creating request %v", err)
 		r.Messages["error"] = append(r.Messages["error"], "Error making deployments on the cluster")

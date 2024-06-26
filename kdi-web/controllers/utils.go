@@ -100,7 +100,9 @@ func GetClusterTokenFromJWT(tokenString string) (string, error) {
 }
 
 func MakeRequestToKubernetesAPI(c *gin.Context, cluster models.Cluster, method string, endpoint string, rBody io.Reader) (*http.Response, []byte, bool) {
-	req, err := http.NewRequest(method, KubernetesApiUrl+endpoint, rBody)
+	kubernetesApiUrl := os.Getenv("KDI_K8S_API_ENDPOINT")
+
+	req, err := http.NewRequest(method, kubernetesApiUrl+endpoint, rBody)
 	if err != nil {
 		log.Printf("Error creating request %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error creating request"})
