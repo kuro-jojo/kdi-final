@@ -16,7 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kuro-jojo/kdi-k8s/utils"
-	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -61,7 +60,7 @@ func AuthenticateToCluster(c *gin.Context) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		if claims["sub"] != os.Getenv("JWT_SUB_FOR_K8S_API") {
+		if claims["sub"] != os.Getenv("KDI_JWT_SUB_FOR_K8S_API") {
 			log.Printf("Unauthorized - invalid sub %v", claims["sub"])
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 			return
@@ -194,7 +193,7 @@ func checkAWSConnection(eksAuth EKSAuth, c *gin.Context) (int, error) {
 		},
 		BearerToken: tk.Token,
 	}
-	log.Printf("Token: %s", tk.Token)
+
 	clientset, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		return code, fmt.Errorf("failed to connect to cluster. Reason: failed to create kubernetes client, %v", err)
@@ -288,9 +287,7 @@ func checkClusterReachability(err error, clientset *kubernetes.Clientset, code i
 		timer := time.NewTimer(ReachK8sServerTimeout)
 		defer timer.Stop()
 		go func() {
-			var ver *version.Info
-			ver, err = clientset.ServerVersion()
-			log.Printf("Server version: %+v", ver)
+			_, err = clientset.ServerVersion()
 			finishedServer <- true
 		}()
 		select {
@@ -337,7 +334,7 @@ func retrieveTokenFromJWT(tokenString string, c *gin.Context) *jwt.Token {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+		return []byte(os.Getenv("KDI_JWT_SECRET_KEY")), nil
 	})
 
 	if err != nil {
@@ -346,10 +343,11 @@ func retrieveTokenFromJWT(tokenString string, c *gin.Context) *jwt.Token {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Token is expired"})
 			return nil
 		}
-		log.Printf("Error while parsing token %v", err)
+		log.Printf("Error while parsing token : %v", err)
 
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Error while parsing token"})
 		return nil
 	}
+	log.Println("Token is valid")
 	return token
 }
