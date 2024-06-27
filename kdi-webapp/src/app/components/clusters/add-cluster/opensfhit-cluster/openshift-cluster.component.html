@@ -54,7 +54,7 @@
                                 <div *ngIf="formControls['Address'].errors['required']">Please enter an API
                                     address
                                 </div>
-                                <div *ngIf="formControls['Address'].errors['pattern']">Please a valid API
+                                <div *ngIf="formControls['Address'].errors['pattern']">Please enter a valid API
                                     address
                                 </div>
                             </div>
@@ -64,7 +64,7 @@
                             <input type="text" class="form-control" id="port" formControlName="Port" placeholder="6443"
                                 [ngClass]="{ 'is-invalid': submitted && formControls['Port'].errors }">
                             <div *ngIf="submitted && formControls['Port'].errors" class="invalid-feedback d-block">
-                                <div *ngIf="formControls['Port'].errors['pattern']">Please a valid port</div>
+                                <div *ngIf="formControls['Port'].errors['pattern']">Please enter a valid port</div>
                             </div>
                         </div>
                         <div class="col-12">
