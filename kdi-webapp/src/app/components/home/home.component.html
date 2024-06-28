@@ -20,7 +20,7 @@
                 </div>
 
                 <section class="section dashboard row">
-                    <div class="col-md-4" [routerLink]="['/clusters']" role="button">
+                    <div class="col-md-4" role="button">
                         <div class="card info-card cluster-card">
 
                             <div class="filter">
@@ -37,7 +37,7 @@
                                 </ul>
                             </div>
 
-                            <div class="card-body">
+                            <div class="card-body" [routerLink]="['/clusters']">
                                 <h5 class="card-title">Clusters <span>| {{ clusterFilter }}</span></h5>
 
                                 <div class="d-flex align-items-center">
@@ -54,7 +54,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4" [routerLink]="['/teamspaces']" role="button">
+                    <div class="col-md-4" role="button">
                         <div class="card info-card teamspace-card">
                             <div class="filter">
                                 <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -71,7 +71,7 @@
                                 </ul>
                             </div>
 
-                            <div class="card-body">
+                            <div class="card-body" [routerLink]="['/teamspaces']">
                                 <h5 class="card-title">Teamspaces <span>| {{ teamspaceFilter }} </span></h5>
 
                                 <div class="d-flex align-items-center">
@@ -90,7 +90,7 @@
                     </div>
 
 
-                    <div class="col-md-4" [routerLink]="['/projects']" role="button">
+                    <div class="col-md-4" role="button">
                         <div class="card info-card project-card">
                             <div class="filter">
                                 <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -107,7 +107,7 @@
                                 </ul>
                             </div>
 
-                            <div class="card-body">
+                            <div class="card-body" [routerLink]="['/projects']">
                                 <h5 class="card-title">Projects <span>| {{ projectFilter }}</span></h5>
 
                                 <div class="d-flex align-items-center">

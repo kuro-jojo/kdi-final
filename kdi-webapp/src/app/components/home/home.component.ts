@@ -81,8 +81,7 @@ export class HomeComponent {
         return new Promise((resolve, reject) => {
             this.teamspaceService.getTeamspaceClusters(teamspaceID).subscribe({
                 next: (resp: { 'clusters': Cluster[] }) => {
-                    console.log(resp.clusters.filter((t: Cluster) => t.CreatorID !== String(this.user.ID)));
-                    resolve(resp.clusters.filter((t: Cluster) => t.CreatorID !== String(this.user.ID)).length);
+                    resolve(resp.clusters ? resp.clusters.filter((t: Cluster) => t.CreatorID !== String(this.user.ID)).length : 0);
                 },
                 error: (error: HttpErrorResponse) => {
                     console.error(error);
@@ -97,7 +96,7 @@ export class HomeComponent {
         return new Promise((resolve, reject) => {
             this.clusterService.getOwnedClusters().subscribe({
                 next: (resp) => {
-                    this.numberOfOwnedClusters = resp.clusters? resp.clusters.length : 0;
+                    this.numberOfOwnedClusters = resp.clusters ? resp.clusters.length : 0;
                     resolve();
                 },
                 error: (error: HttpErrorResponse) => {
