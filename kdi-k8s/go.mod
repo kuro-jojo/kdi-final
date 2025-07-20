@@ -1,6 +1,8 @@
 module github.com/kuro-jojo/kdi-k8s
 
-go 1.22.2
+go 1.23.0
+
+toolchain go1.23.11
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.30.0
@@ -154,7 +156,7 @@ require (
 	golang.org/x/arch v0.7.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/oauth2 v0.15.0 // indirect
+	golang.org/x/oauth2 v0.27.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/term v0.19.0 // indirect
