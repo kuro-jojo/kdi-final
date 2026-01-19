@@ -1,6 +1,7 @@
 # Kubernetes Deployment Interface (KDI)
 In this repo, we've created an api in order to make deployment on a k8s cluster locally.
 
+The monolyth version (with the contributions of KDI team members) can be found here : https://github.com/kuro-jojo/kdi
 ## Prerequisites
 - Go [https://go.dev/doc/install](https://go.dev/doc/install)
 - K8s cluster
